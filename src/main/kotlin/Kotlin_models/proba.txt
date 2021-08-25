@@ -1,0 +1,24 @@
+/**
+ * SD model of Simple Compound Interest.
+ *
+ * @author [Siniša Sovilj](mailto:sinisa.sovilj@unipu.hr)
+ */
+
+package Kotlin_models
+open class ModelGenericSD : Model() {
+
+    // Static properties:
+    companion object {
+        const val CONSTANT_KEY = "CONSTANT"
+        const val CONVERTER_KEY = "converter"
+        const val INITIAL_STOCK_KEY = "INITIAL_STOCK"
+        const val INFLOW_KEY = "inflow"
+        const val OUTFLOW_KEY = "outflow"
+        const val STOCK_KEY = "Stock"
+
+        const val CONSTANT_VALUE = 10          // [%]
+        const val INITIAL_STOCK_VALUE = 100    // [€]
+        const val INITIAL_TIME_VALUE = 0       // [month]
+        const val FINAL_TIME_VALUE = 120       // [month]
+        const val TIME_STEP_VALUE = 0.25       // [month]
+    }}
