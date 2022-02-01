@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/hr.unipu.transpiler.XMILE/v1.0" xmlns:isee="http://iseesystems.com/hr.unipu.transpiler.XMILE">
     <header>
         <smile version="1.0" namespace="std, isee" uses_submodels=""/>
         <name>model11b2</name>

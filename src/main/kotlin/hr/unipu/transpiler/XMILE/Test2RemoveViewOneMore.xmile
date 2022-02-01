@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/hr.unipu.transpiler.XMILE/v1.0" xmlns:isee="http://iseesystems.com/hr.unipu.transpiler.XMILE">
     <header>
         <smile version="1.0" namespace="std, isee" uses_submodels=""/>
         <name>model11b2</name>
@@ -194,8 +194,122 @@
                 <aux font_color="blue" x="273" y="164" name="hares_killed\nper_lynx"/>
             </view>
             <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
-
+        </views>
     </model>
+     <model name="example_Model">
+            <variables>
+                <stock name="hares">
+                    <eqn>50000 </eqn>
+                    <inflow>births</inflow>
+                    <outflow>deaths</outflow>
+                    <non_negative></non_negative>
+                </stock>
+                <flow name="births">
+                    <eqn>hares * birth_fraction </eqn>
+                    <non_negative></non_negative>
+                </flow>
+                <flow name="deaths">
+                    <eqn>lynxes * hares_killed_per_lynx </eqn>
+                    <non_negative></non_negative>
+                </flow>
+                <aux name="birth_fraction">
+                    <eqn>1.25 </eqn>
+                </aux>
+                <aux name="area" access="input">
+                    <eqn>{Enter equation for use when not hooked up to other models}</eqn>
+                </aux>
+                <aux name="hare_density" access="output">
+                    <eqn>hares / area </eqn>
+                </aux>
+                <stock name="lynxes" access="input">
+                    <eqn>{Enter equation for use when not hooked up to other models}</eqn>
+                    <non_negative></non_negative>
+                </stock>
+                <aux name="hares_killed\nper_lynx">
+                    <eqn>hare_density </eqn>
+                    <gf>
+                        <yscale min="0" max="500"/>
+                        <xpts>0,50,100,150.00000000000003,200,250,300.00000000000006,350.00000000000006,400,450,500</xpts>
+                        <ypts>0,50,100,150.00000000000003,200,250,300.00000000000006,350.00000000000006,400,450,500</ypts>
+                    </gf>
+                </aux>
+            </variables>
+            <views>
+                <style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+                    <text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+                    <numeric_display color="blue" background="white" font_size="9pt"/>
+                    <graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" legend_position="right" axis_label_font_size="9pt"/>
+                    <table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" blank_column_width="80" column_width="160" interval="1" isee:report_month_names="false" header_text_align="center"/>
+                    <button color="black" background="#E0E0E0" font_size="9pt" transparent="false" corner_radius="0"/>
+                    <switch color="black" background="#E0E0E0" font_size="9pt" label_side="top"/>
+                    <graphical_input color="black" background="#E0E0E0" font_size="9pt"/>
+                    <group_input color="black" background="#E0E0E0" font_size="9pt"/>
+                    <lamp color="black" background="white" font_size="9pt"/>
+                </style>
+                <view show_pages="false" page_width="768" page_height="576" scroll_x="54" zoom="200" isee:popup_graphs_are_comparative="true" type="stock_flow">
+                    <style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="9pt" padding="2" border_color="black" border_width="thin" border_style="none">
+                        <stock color="blue" background="white" font_color="blue" label_side="top" label_angle="0">
+                            <shape type="rectangle" width="45" height="35"/>
+                        </stock>
+                        <flow color="blue" background="white" font_color="blue" label_side="bottom" label_angle="0"/>
+                        <module color="blue" background="white" font_color="blue" label_side="top" label_angle="0">
+                            <shape type="rectangle" width="55" height="45"/>
+                        </module>
+                        <aux color="blue" background="white" font_color="blue" label_side="bottom" label_angle="0">
+                            <shape type="circle" radius="18"/>
+                        </aux>
+                        <group color="red" background="white" font_color="red"/>
+                    </style>
+                    <connector uid="5" font_color="#FF007F" angle="54.462322208025618">
+                        <from>birth_fraction</from>
+                        <to>births</to>
+                    </connector>
+                    <connector uid="6" font_color="#FF007F" angle="333.43494882292202">
+                        <from>hare_density</from>
+                        <to>hares_killed_per_lynx</to>
+                    </connector>
+                    <connector uid="7" font_color="#FF007F" angle="83.659808254090095">
+                        <from>hares_killed_per_lynx</from>
+                        <to>deaths</to>
+                    </connector>
+                    <connector uid="8" font_color="#FF007F" angle="217.69424046668917">
+                        <from>hares</from>
+                        <to>hare_density</to>
+                    </connector>
+                    <connector uid="9" font_color="#FF007F" angle="127.40535663140857">
+                        <from>lynxes</from>
+                        <to>deaths</to>
+                    </connector>
+                    <connector uid="10" font_color="#FF007F" angle="139.63546342690262">
+                        <from>hares</from>
+                        <to>births</to>
+                    </connector>
+                    <connector uid="11" font_color="#FF007F" angle="40.601294645004472">
+                        <from>area</from>
+                        <to>hare_density</to>
+                    </connector>
+                    <stock font_color="blue" x="204" y="95" name="hares"/>
+                    <flow font_color="blue" x="121.25" y="94" name="births">
+                        <pts>
+                            <pt x="61" y="94"/>
+                            <pt x="181.5" y="94"/>
+                        </pts>
+                    </flow>
+                    <flow font_color="blue" x="279.75" y="94" name="deaths">
+                        <pts>
+                            <pt x="226.5" y="94"/>
+                            <pt x="357" y="94"/>
+                        </pts>
+                    </flow>
+                    <aux font_color="blue" x="68" y="167" name="birth_fraction"/>
+                    <aux color="blue" font_style="italic" font_weight="bold" font_color="blue" x="148" y="218" name="area"/>
+                    <aux font_color="blue" x="202" y="167" name="hare_density"/>
+                    <stock color="blue" font_style="italic" font_weight="bold" font_color="blue" x="342" y="176" name="lynxes"/>
+                    <aux font_color="blue" x="273" y="164" name="hares_killed\nper_lynx"/>
+                </view>
+                <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
+            </views>
+        </model>
     <model name="lynxes">
         <variables>
             <stock name="lynxes" access="output">
