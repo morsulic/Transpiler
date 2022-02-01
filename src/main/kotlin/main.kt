@@ -1,10 +1,9 @@
-package hr.unipu.transpiler
-//import hr.unipu.transpiler.FunctionsWithFiles.CreateFile
-//import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
-import hr.unipu.transpiler.hr.unipu.transpiler.controller.createListOfStrings
-import hr.unipu.transpiler.hr.unipu.transpiler.controller.getDataInTag
-import hr.unipu.transpiler.hr.unipu.transpiler.controller.getWantedString
-import hr.unipu.transpiler.hr.unipu.transpiler.controller.removeWantedTagBlock
+import hr.unipu.transpiler.FunctionsWithFiles.CreateFile
+import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
+import hr.unipu.transpiler.controller.createListOfStrings
+import hr.unipu.transpiler.controller.getDataInTag
+import hr.unipu.transpiler.controller.getWantedString
+import hr.unipu.transpiler.controller.removeWantedTagBlock
 
 
 
@@ -23,8 +22,8 @@ fun main() {
     /**
      * Creating test file
      */
-    //val KSDmodel= getKSDTemplate() //uncomment the import
-    //("proba1", KSDmodel) //uncomment the import
+    val KSDmodel= getKSDTemplate() //uncomment the import
+    CreateFile("proba1", KSDmodel) //uncomment the import
 }
 
 /**

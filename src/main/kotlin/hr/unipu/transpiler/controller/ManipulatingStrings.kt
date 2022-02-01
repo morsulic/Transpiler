@@ -1,5 +1,9 @@
-package hr.unipu.transpiler.hr.unipu.transpiler.controller
+package hr.unipu.transpiler.controller
 import java.io.FileReader
+
+
+
+
 
 /**
  *Creating mutable list of strings from XMILE format:
@@ -121,3 +125,7 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
     return string1
 
 }
+
+
+
+
