@@ -1,10 +1,6 @@
 package hr.unipu.transpiler.controller
 import java.io.FileReader
 
-
-
-
-
 /**
  *Creating mutable list of strings from XMILE format:
  * Function: createListOfStrings
@@ -124,6 +120,54 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
 
     return string1
 
+}
+/**
+ * Function for getting specific tag block:
+ *                                         breakListToSublist
+ *
+ */
+
+fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, lastBreakPoint: String): MutableList<String> {
+
+
+    var indexTop = mutableListOf<Int>()
+    var indexBottom = mutableListOf<Int>()
+    var list1=list0
+    var list2= mutableListOf<String>()
+    var counterTop=0
+    var counterBottom=0
+
+
+    try{
+        for ( (index, token) in list0.withIndex()) {
+
+            val resultFirst = token.contains(firstBreakPoint)
+            val resultLast = token.contains(lastBreakPoint)
+
+            if (resultFirst) {
+                indexTop.add(index-1)
+                counterTop++
+
+            } else if (resultLast) {
+                indexBottom.add(index+1)
+                counterBottom++
+
+            }
+        }
+
+        if (counterTop==counterBottom){
+            for(index in indexTop.indices){
+
+                list1 = list0.subList(indexTop[index],indexBottom[index])
+                list2 = (list2+list1) as MutableList<String>
+            }}else {
+            println("Some tag are not opened or closed properly!!!")
+        }
+    }catch(ex:java.lang.Exception){
+        print(ex.message)
+    }
+
+    return list2
 }
 
 

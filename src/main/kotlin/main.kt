@@ -1,15 +1,11 @@
 import hr.unipu.transpiler.FunctionsWithFiles.CreateFile
 import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
-import hr.unipu.transpiler.controller.createListOfStrings
-import hr.unipu.transpiler.controller.getDataInTag
-import hr.unipu.transpiler.controller.getWantedString
-import hr.unipu.transpiler.controller.removeWantedTagBlock
-
+import hr.unipu.transpiler.controller.*
 
 
 fun main() {
    //ReadFromFile("hares_and_foxes")
-   Lexer("hares_and_foxes")
+    Lexer("hares_and_foxes")
 
     /**
      * Testing functionality of removing view tag
@@ -41,10 +37,15 @@ fun gettingXMILETagData(tokens: List<String>): String {
     var versionXMILE =getWantedString(list,' ',"version")
     var xmlns = getWantedString(list,' ',"xmlns")
     var xmlns1 = getWantedString(list,' ',"xmlns:isee")
+
     /**
-     * println(versionXMILE)
-     * println(xmlns)
-     * println(xmlns1)
+     * Printing all data needed for 1. Base-Level Conformance
+     */
+      // println(versionXMILE)
+      // println(xmlns)
+      // println(xmlns1)
+     /**
+     * Working ++
      */
 
     return list
@@ -69,20 +70,25 @@ fun gettingHeaderTagData(tokens: MutableList<String>):String{
 
     val list =""
     val headerList=breakListToSubList(tokens,TOP_HEADER,BOTTOM_HEADER)
+    //println(headerList)
 
     val modelName=breakListToSubList(headerList,H_TOP_NAME,H_BOT_NAME)
-    var modelNameTxt= modelName[0]
+    var modelNameTxt= modelName[2]
 
     val modelVendor=breakListToSubList(headerList,H_TOP_VENDOR,H_BOT_VENDOR)
-    val modelVendorTxt= modelVendor[0]
+    val modelVendorTxt= modelVendor[2]
 
     val modelProductList=getDataInTag(headerList,H_TOP_PRODUCT)
     var versionProduct =getWantedString(modelProductList,' ',"version")
 
     /**
-     * println(modelNameTxt)
-     * println(modelVendorTxt)
-     * println(versionProduct)
+     * Printing all data needed for 2. Base-Level Conformance
+     */
+     // println(modelNameTxt)
+     // println(modelVendorTxt)
+     // println(versionProduct)
+     /**
+     * Working ++
      */
 
     return list
@@ -91,19 +97,22 @@ fun gettingHeaderTagData(tokens: MutableList<String>):String{
 /**
  * XMILE file Base-Level Conformance
  * 3. MUST include at least one <model> tag (Section 2)
+ * 4. MUST name models beyond the root model (Section 4)
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
 fun gettingModelTagData(tokens: MutableList<String>):String{
     //Model tokens
-
     val TOP_MODEL="<model"
     val BOTTOM_MODEL="</model>"
 
 
 
     val modelList=breakListToSubList(tokens,TOP_MODEL,BOTTOM_MODEL)
-    println(modelList)
+    //println(modelList)
+    val countOfModelTags = countTags(modelList,TOP_MODEL,BOTTOM_MODEL)
+    println(" ")
+    println(countOfModelTags)
 
     return ""
 }
@@ -147,6 +156,7 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>):String{
 
     //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
     val simSpecs = breakListToSubList(tokens,TOP_SIM_SPECS,BOTTOM_SIM_SPECS)
+    /**
     val startOfInterval = breakListToSubList(simSpecs,TOP_START,BOT_START)
     val endOfInterval = breakListToSubList(simSpecs,TOP_STOP,BOT_STOP)
     val interval = breakListToSubList(simSpecs,TOP_DT,BOT_DT)
@@ -161,7 +171,7 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>):String{
     var finalTime = endOfInterval[0].toFloat()
 
     var timeStep = interval[0].toFloat()
-
+*/
     /**
      * println(methodSD)
      * println(timeUnitSD)
@@ -186,54 +196,6 @@ fun gettingBehaviorTagData(tokens: List<String>):String{
 
 
 
-/**
- * Functions for getting specific subtag and values between them:
- *                                                   breakListToSublist
- *                                                   getDataInTag
- */
-
-fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, lastBreakPoint: String): MutableList<String> {
-
-
-    var indexTop = mutableListOf<Int>()
-    var indexBottom = mutableListOf<Int>()
-    var list1=list0
-    var list2= mutableListOf<String>()
-    var counterTop=0
-    var counterBottom=0
-
-
-    try{
-        for ( (index, token) in list0.withIndex()) {
-
-            val resultFirst = token.contains(firstBreakPoint)
-            val resultLast = token.contains(lastBreakPoint)
-
-            if (resultFirst) {
-                indexTop.add(index)
-                counterTop++
-
-            } else if (resultLast) {
-                indexBottom.add(index)
-                counterBottom++
-
-            }
-        }
-
-        if (counterTop==counterBottom){
-            for(index in indexTop.indices){
-
-                list1 = list0.subList(indexTop[index],indexBottom[index])
-                list2 = (list2+list1) as MutableList<String>
-            }}else {
-            println("Some tag are not opened or closed properly!!!")
-        }
-    }catch(ex:java.lang.Exception){
-        print(ex.message)
-    }
-
-    return list2
-}
 
 
 /**
