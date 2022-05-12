@@ -1,3 +1,4 @@
+
 import hr.unipu.transpiler.FunctionsWithFiles.CreateFile
 import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
 import hr.unipu.transpiler.controller.*
@@ -9,11 +10,17 @@ fun main() {
 
     /**
      * Testing functionality of removing view tag
+     * Tests 1 to 3
      */
 
-    //Lexer("Test1RemoveView")// Main test for remove view  +
-    //Lexer("Test2RemoveViewOneMore") //Testing removing one more view block
+    //Lexer("Test1RemoveView")// Main test for remove view +
+    //Lexer("Test2RemoveViewOneMore") //Testing removing one more view block +
     //Lexer("Test3RemoveViewErrorTags") //Testing remove view with one view block without end tag
+
+    /**
+     * Testing functionality of Base-Level Conformance 3. MUST include at least one <model> tag (Section 2)
+     */
+    //Lexer("Test4WithOutModel") //Testing that at least one model tag must exist in XMILE format +
 
     /**
      * Creating test file
@@ -28,10 +35,9 @@ fun main() {
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
-fun gettingXMILETagData(tokens: List<String>): String {
+fun gettingXMILETagData(tokens: List<String>): Map<String, Any> {
     //hr.unipu.transpiler.XMILE tokens (tags) only version  ( version 1.0)
     val TOP_XMILE ="<xmile"
-    val BOTTOM_XMILE="</xmile>"
 
     val list =getDataInTag(tokens,TOP_XMILE)
     var versionXMILE =getWantedString(list,' ',"version")
@@ -41,14 +47,21 @@ fun gettingXMILETagData(tokens: List<String>): String {
     /**
      * Printing all data needed for 1. Base-Level Conformance
      */
-      // println(versionXMILE)
-      // println(xmlns)
-      // println(xmlns1)
+       //println(versionXMILE)
+       //println(xmlns)
+       //println(xmlns1)
+
+    /**
+     * Returning the values in XMILE tag with data saved in map structure
+     */
+
+    val XMILETagDataMap =mapOf("Version" to versionXMILE, "xmlns" to xmlns, "xmlnsISEE" to xmlns1)
+
      /**
      * Working ++
      */
 
-    return list
+    return XMILETagDataMap
 }
 
 /**
@@ -57,7 +70,7 @@ fun gettingXMILETagData(tokens: List<String>): String {
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
-fun gettingHeaderTagData(tokens: MutableList<String>):String{
+fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
     //Header tokens
     val TOP_HEADER ="<header>"
     val BOTTOM_HEADER ="</header>"
@@ -68,30 +81,36 @@ fun gettingHeaderTagData(tokens: MutableList<String>):String{
     val H_TOP_PRODUCT="<product"
 
 
-    val list =""
     val headerList=breakListToSubList(tokens,TOP_HEADER,BOTTOM_HEADER)
+
     //println(headerList)
 
-    val modelName=breakListToSubList(headerList,H_TOP_NAME,H_BOT_NAME)
-    var modelNameTxt= modelName[2]
+    val modelName = breakListToSubList(headerList, H_TOP_NAME, H_BOT_NAME)
+    var modelNameTxt = modelName[2]
 
-    val modelVendor=breakListToSubList(headerList,H_TOP_VENDOR,H_BOT_VENDOR)
-    val modelVendorTxt= modelVendor[2]
+    val modelVendor = breakListToSubList(headerList, H_TOP_VENDOR, H_BOT_VENDOR)
+    val modelVendorTxt = modelVendor[2]
 
-    val modelProductList=getDataInTag(headerList,H_TOP_PRODUCT)
-    var versionProduct =getWantedString(modelProductList,' ',"version")
+    val modelProductList = getDataInTag(headerList, H_TOP_PRODUCT)
+    var versionProduct = getWantedString(modelProductList, ' ', "version")
 
     /**
      * Printing all data needed for 2. Base-Level Conformance
      */
-     // println(modelNameTxt)
-     // println(modelVendorTxt)
-     // println(versionProduct)
-     /**
+    //println(modelNameTxt)
+    //println(modelVendorTxt)
+    //println(versionProduct)
+
+    /**
+     * Returning the values in header tag with data saved in map structure
+     */
+
+    val HeaderTagDataMap =mapOf("Name" to modelNameTxt, "Vendor" to modelVendorTxt, "Product version" to versionProduct)
+    /**
      * Working ++
      */
 
-    return list
+    return HeaderTagDataMap
 }
 
 /**
@@ -102,18 +121,22 @@ fun gettingHeaderTagData(tokens: MutableList<String>):String{
  */
 
 fun gettingModelTagData(tokens: MutableList<String>):String{
-    //Model tokens
-    val TOP_MODEL="<model"
-    val BOTTOM_MODEL="</model>"
 
+    /**
+     * Checking if there is at least one model tag
+     */
+    val countOfModelTags = countTags(tokens, "<model", "</model>")
 
-
-    val modelList=breakListToSubList(tokens,TOP_MODEL,BOTTOM_MODEL)
-    //println(modelList)
-    val countOfModelTags = countTags(modelList,TOP_MODEL,BOTTOM_MODEL)
-    println(" ")
-    println(countOfModelTags)
-
+    if(countOfModelTags>0) {
+        val modelList = breakListToSubList(tokens, "<model", "</model>")
+        println(modelList)
+        val modelNameList = getDataInTag(modelList, "<model name")
+        println(modelNameList)
+        var modelName = getWantedString(modelNameList, ' ', "name")
+        println(" ")
+        println(countOfModelTags)
+        println(modelName)
+    }
     return ""
 }
 /**
@@ -231,12 +254,12 @@ fun Lexer(name: String){
      */
 
     //1. Getting data from hr.unipu.transpiler.XMILE tag of hr.unipu.transpiler.XMILE format
-    val XMILETopString =gettingXMILETagData(tokens)
-    //println(XMILETopString)
+    val XMILETopMap =gettingXMILETagData(tokens)
+    //println(XMILETopMap)
 
     //2. Getting data from header of hr.unipu.transpiler.XMILE format
-    val header = gettingHeaderTagData(tokens)
-    //println(header)
+    val headerMap = gettingHeaderTagData(tokens)
+    //println(headerMap)
 
     //3. Getting data from model of hr.unipu.transpiler.XMILE format
     val model = gettingModelTagData(tokens)
