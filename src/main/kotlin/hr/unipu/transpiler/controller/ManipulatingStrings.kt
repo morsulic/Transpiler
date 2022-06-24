@@ -104,7 +104,7 @@ fun getWantedString(string0: String, breakPoint: Char, wantedString: String): St
 fun getDataInTag(list0: List<String>,breakPoint: String):String {
 
     var indexList = 0
-
+    var counter = 0
 
     for (  (index, token) in list0.withIndex()){
 
@@ -112,14 +112,19 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
 
         if(result){
             indexList=index
+            counter ++
         }
     }
 
-    val list1 = list0.subList(indexList,indexList+1)
-    var string1= list1[0]
+    if(counter>0) {
+        val list1 = list0.subList(indexList, indexList + 1)
+        var string1 = list1[0]
 
-    return string1
-
+        return string1
+    }
+    else {
+        return ""
+    }
 }
 /**
  * Function for getting specific tag block:
@@ -127,6 +132,35 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
  *
  */
 
+fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBreakPoint: String): MutableList<String>{
+
+    var indexTop = mutableListOf<Int>()
+    var indexBottom = mutableListOf<Int>()
+    var list1=list0
+    var list2= mutableListOf<String>()
+
+
+    for ( (index, token) in list0.withIndex()) {
+
+        val resultFirst = token.contains(firstBreakPoint)
+        val resultLast = token.contains(lastBreakPoint)
+
+        if (resultFirst) {
+            indexTop.add(index-1)
+
+        } else if (resultLast) {
+            indexBottom.add(index+1)
+
+        }}
+
+    for(index in indexTop.indices){
+
+        list1 = list0.subList(indexTop[index],indexBottom[index])
+        list2 = (list2+list1) as MutableList<String>
+    }
+
+    return list2
+}
 fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, lastBreakPoint: String): MutableList<String> {
 
 

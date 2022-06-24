@@ -39,10 +39,10 @@ fun removeWantedTagBlock (list0: MutableList<String>, firstBreakPoint: String, l
                 counterBottom++
 
             }
+
         }
         if (counterTop==counterBottom){
-            for(index in indexTop.indices){
-
+            repeat(counterTop) { index ->
                 removeSlice(list1,indexTop[index],indexBottom[index])
 
                 indexHelp = indexHelp + indexBottom[index]-indexTop[index]+1
@@ -53,7 +53,7 @@ fun removeWantedTagBlock (list0: MutableList<String>, firstBreakPoint: String, l
             println("The function removingWantedTag would not be used for removing view because number of top and bottom tags is not same!!!")
         }
     }catch(ex:java.lang.Exception){
-        print(ex.message)
+        println(ex.message +"Remove data line 56")
     }
 
     return list1
