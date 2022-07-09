@@ -1,14 +1,12 @@
-
 import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
-import hr.unipu.transpiler.controller.breakListToSubList
-import hr.unipu.transpiler.controller.createListOfStrings
-import hr.unipu.transpiler.controller.getDataInTag
-import hr.unipu.transpiler.controller.getWantedString
+import hr.unipu.transpiler.controller.*
+import hr.unipu.transpiler.model.TranspilerModule
+import hr.unipu.transpiler.model.TranspilerStock
 
 
 fun main() {
     //ReadFromFile("hares_and_foxes")
-    //Lexer("hares_and_foxes")
+    Lexer("hares_and_foxes")
 
     /**
      * Testing functionality of removing view tag
@@ -34,13 +32,28 @@ fun main() {
     //Lexer("Test9WithOutHeaderTag") //Testing header tag missing
     //Lexer("Test10WithOutHeaderTag") //Testing header tag name missing
     //Lexer("Test11WithOutHeaderTag") //Testing header tag product version missing
-
+    //Lexer("Test16WithOutHeaderTag") //Testing header tag product version value missing
     /**
      * Testing functionality of Base-Level Conformance 3. MUST include at least one <model> tag (Section 2) and
      * 4. MUST name models beyond the root model (Section 4)
      */
-    Lexer("Test4WithOutModel") //Testing that at least one model tag must exist in XMILE format ???
+    //Lexer("Test4WithOutModel") //Testing that at least one model tag must exist in XMILE format
+    //Lexer("Test17WithOutSubModelName") //Testing that all submodels are properly named
 
+    /**
+     * Testing functionality of Base-Level Conformance 7. MUST include, when using optional features, the <options>
+     * tag with those features specified (Section 2.2.1)
+     */
+    //Lexer("Test15OptionsUsesSubModels")
+
+
+    /**
+     * Testing functionality of Base-Level Conformance  8. MUST contain at least one set of simulation
+     * specifications (Section 2.3)
+     */
+    //Lexer("Test12WithOutSimSpecs") //Testing that at least one SimSpecss tag must exist in XMILE format
+    //Lexer("Test13WithOutSimSpecs") //Testing sim_specs start of interval tag value missing
+    //Lexer("Test14WithOutSimSpecs") //Testing sim_specs dt tag value missing used default value time step = 1.0
 
     /**
      * Testing functionality of Base-Level Conformance 9. MUST support model behaviors (Section 2.6)
@@ -64,16 +77,10 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
     //hr.unipu.transpiler.XMILE tokens (tags) only version  ( version 1.0)
 
         val list = getDataInTag(tokens, "<xmile")
+    //println(list)
         var versionXMILE = getWantedString(list, ' ', "version")
         var xmlns = getWantedString(list, ' ', "xmlns")
         var xmlns1 = getWantedString(list, ' ', "xmlns:isee")
-
-    /**
-     * Printing all data needed for 1. Base-Level Conformance
-     */
-       //println(versionXMILE)
-       //println(xmlns)
-       //println(xmlns1)
 
     /**
      * Returning the values in XMILE tag with data saved in map structure if every condition for XMILE tag is satisfied
@@ -102,7 +109,7 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
 fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
 
     val headerList=breakListToSubList(tokens,"<header","</header>")
-
+    //println(headerList)
     if(headerList.isNotEmpty()) {
         val modelName = breakListToSubList(headerList, "<name", "</name>")
         val modelVendor = breakListToSubList(headerList, "<vendor", "</vendor>")
@@ -115,9 +122,9 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
             return mapOf("Error" to "Header tag not properly configured!!!")
 
         }else{
-            var modelNameTxt = modelName[2]
-            val modelVendorTxt = modelVendor[2]
-            val productNameTxt = productName[2]
+            var modelNameTxt = modelName[1]
+            val modelVendorTxt = modelVendor[1]
+            val productNameTxt = productName[1]
 
             /**
              * Returning the values in header tag with data saved in map structure
@@ -130,14 +137,6 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
         }
 
     }
-    /**
-     * Printing all data needed for 2. Base-Level Conformance
-     */
-    //println(modelNameTxt)
-    //println(modelVendorTxt)
-    //println(productNameTxt)
-    //println(versionProduct)
-
 
      return mapOf("Error" to "Header tag not properly configured!!!")
 
@@ -150,33 +149,118 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
  * XMILE file Base-Level Conformance
  * 3. MUST include at least one <model> tag (Section 2)
  * 4. MUST name models beyond the root model (Section 4)
+ * 11.  MUST support all base functionality objects (Section 3.1 and all subsections)
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
+fun gettingModules(tokens: MutableList<String>): TranspilerModule{
 
-fun gettingModelTagData(tokens: MutableList<String>):Map<String, Any> {
+    var connectionTo = ""
+    var connectionFrom = ""
 
+    val moduleNameToken = getDataInTag(tokens, "<module")
+    val moduleName = getWantedString(moduleNameToken, ' ', "name")
+    val moduleConnectionList= getDataInTags(tokens,"<connect")
 
+    val tModule = TranspilerModule()
+    tModule.moduleName=moduleName
 
-        val modelList = breakListToSubList(tokens, "<model", "</model>")
-        println(modelList)
-
-    if (modelList.isEmpty()){
-
-        return mapOf("Error" to "Model tag is not included in XMILE dokument!")
-
+    for(index in moduleConnectionList.indices){
+        connectionTo = getWantedString(moduleConnectionList[index], ' ', "to")
+        connectionFrom = getWantedString(moduleConnectionList[index],' ', "from")
+        tModule.connectionToFrom.add( mapOf(connectionTo to connectionFrom))
     }
-        //var modelNameList = getDataInTag(modelList, "<model name")
-        //modelNameList=modelNameList.dropLast(1)
-        //val string =java.lang.String.join(separator, modelNameList)
-        //println(string)
-        //var modelListMultipl = separateSameTags(modelList,string,"</model>")
-        //println(modelListMultipl)
-        //var modelName = getWantedString(modelNameList, ' ', "name")
-        //println(" ")
 
-        //println(modelName)
+    //println(tModule.moduleName + " " + tModule.connectionToFrom)
+    return tModule
+}
+
+fun gettingStocks(tokens: MutableList<String>): TranspilerStock {
+    println(tokens)
+    val stockNameToken = getDataInTag(tokens, "<stock")
+    val stockName = getWantedString(stockNameToken, ' ', "name")
+    val valueEquationToken = breakListToSubList(tokens, "<eqn", "</eqn>")
+    val inflowsList = separateSameTags(tokens,"<inflow", "</inflow>")
+    val outflowsList = separateSameTags(tokens, "<outflow", "</outflow>")
+    println(inflowsList)
+    println(outflowsList)
+    val inflows = mutableListOf<String>()
+    val outflows = mutableListOf<String>()
+
+    for(index in inflowsList.indices){
+        inflows.add(inflowsList[index][index])
+    }
+    for(index in outflowsList.indices){
+        outflows.add(outflowsList[index][index])
+    }
+
+
+    val nonNegative = false
+
+
+
+    val tStock = TranspilerStock()
+
+    tStock.stockName = stockName
+    tStock.initialValueEquation = valueEquationToken[1]
+    tStock.inflows=inflows
+    tStock.outflows=outflows
+
+    println(tStock.stockName+" "+tStock.inflows+" "+tStock.outflows+" "+tStock.initialValueEquation)
+    return tStock
+}
+fun gettingModelVariables(tokens: MutableList<MutableList<String>>): Map<String, Any>{
+
+    val moduleList = separateSameTags(tokens[0], "<module", "</module>")
+    for((index) in moduleList.withIndex()){
+    val tModule = gettingModules(moduleList[index])}
+    val tStocks = gettingStocks(tokens[1])
+    return(mapOf("OK" to "OK"))
+}
+fun gettingModelTagData(tokens: MutableList<String>, modelName: String):Map<String, Any> {
+
+        val modelNameList = mutableListOf<String>()
+        val modelList = separateSameTags(tokens, "<model", "</model>")
+      // println(modelList)
+
+
+        if (modelList.isEmpty()){
+
+           return mapOf("Error" to "Model tag is not included in XMILE dokument!")
+
+        }
+
+        for((index) in modelList.withIndex()){
+            if (index==0){
+                //println(modelList[index])
+                val rootModel = getDataInTag(modelList[index], "<model")
+                var nameRouteModel = getWantedString(rootModel, ' ', "name")
+
+                if (nameRouteModel==""){
+
+                    nameRouteModel=modelName
+                    modelNameList.add(nameRouteModel)
+                    //println(nameRouteModel)
+
+                }
+            }else{
+
+                val rootModel = getDataInTag(modelList[index], "<model")
+                val name= getWantedString(rootModel, ' ', "name")
+                if (name==""){
+                    return mapOf("Error" to "Model or models beyond the root model are not properly named!")
+                }
+                modelNameList.add(name)
+
+            }
+        }
+    var list = gettingModelVariables(modelList)
 
     return mapOf("OK" to "OK")
+
+    /**
+     * Working Base-Level Conformance: 3. MUST include at least one <model> tag (Section 2) (confirmed with test4)
+     *                                 4. MUST name models beyond the root model (Section 4) (confirmed with test17)
+     */
 }
 /**
  * XMILE file Base-Level Conformance
@@ -184,15 +268,12 @@ fun gettingModelTagData(tokens: MutableList<String>):Map<String, Any> {
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
-fun gettingOptionsTagData(tokens: List<String>):String{
-    //Options ->Default simulation specifications for this model.
-    val TOP_OPTIONS = "<options"
-    val BOTTOM_OPTIONS ="</options>"
-    val USES_ARRAYS = "<uses_arrays/>"
-    val USES_MACROS = "<uses_macros/>"
-
-
-    return ""
+fun gettingOptionsTagData(tokens: MutableList<String>):Map<String, Any>{
+    val optionslList = breakListToSubList(tokens, "<options", "</options>")
+    //println(optionslList)
+    val usesSubModels = getLowerLevelOfList(tokens, "<options", "</options>")
+   // println(usesSubModels)
+    return mapOf("" to "")
 }
 
 
@@ -204,49 +285,61 @@ fun gettingOptionsTagData(tokens: List<String>):String{
 
 fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
 
-
     //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
-    val simSpecs = breakListToSubList(tokens,"<sim_specs","</sim_specs>")
-    val startOfInterval = breakListToSubList(simSpecs,"<start>","</start>")
-    val endOfInterval = breakListToSubList(simSpecs,"<stop>","</stop>")
-    val interval = breakListToSubList(simSpecs,"<dt>","</dt>")
 
-    val simSpecsTopString = getDataInTag(tokens,"<sim_specs")
+    val simSpecsList = breakListToSubList(tokens,"<sim_specs","</sim_specs>")
+    if(simSpecsList.isNotEmpty()) {
+        val startOfInterval = breakListToSubList(simSpecsList, "<start>", "</start>")
+        val endOfInterval = breakListToSubList(simSpecsList, "<stop>", "</stop>")
+        var interval = breakListToSubList(simSpecsList, "<dt>", "</dt>")
+        val simSpecsTopString = getDataInTag(tokens, "<sim_specs")
+        var methodSD = getWantedString(simSpecsTopString, ' ', "method")
+        var timeUnitSD = getWantedString(simSpecsTopString, ' ', "time_units")
+        val a = startOfInterval[1].toDoubleOrNull()
+        val b = endOfInterval[1].toDoubleOrNull()
+        val c = interval[1].toDoubleOrNull()
+
+        if (startOfInterval.isEmpty() || endOfInterval.isEmpty() || a == null || b == null) {
+
+            return mapOf("Error" to "Sim_specs start or stop tag not properly configured!!!")
+
+        } else if (c == null || interval.isEmpty() && (a != null && b != null)) {
+
+            var initialTime = startOfInterval[1].toDouble()
+            var finalTime = endOfInterval[1].toDouble()
+            var timeStep = 1.0
+
+            val SimSpecsTagDataMap = mapOf(
+                "Method" to methodSD, "Time unit" to timeUnitSD, "Initial time" to initialTime,
+                "Final time" to finalTime, "Time step" to timeStep
+            )
+
+            return SimSpecsTagDataMap
+
+        } else if (a != null && b != null && c != null) {
+
+            var initialTime = startOfInterval[1].toDouble()
+            var finalTime = endOfInterval[1].toDouble()
+            var timeStep = interval[1].toDouble()
 
 
-    var methodSD =getWantedString(simSpecsTopString,' ',"method")
-    var timeUnitSD =getWantedString(simSpecsTopString,' ',"time_units")
+            val SimSpecsTagDataMap = mapOf(
+                "Method" to methodSD, "Time unit" to timeUnitSD, "Initial time" to initialTime,
+                "Final time" to finalTime, "Time step" to timeStep
+            )
 
 
-    var initialTime = startOfInterval[2].toFloat()
-    var finalTime = endOfInterval[2].toFloat()
-    var timeStep = interval[2].toFloat()
-
+            return SimSpecsTagDataMap
+        }else{
+            return mapOf("Error" to "Sim_specs tag not properly configured!!!")
+        }
+    }
+    return mapOf("Error" to "Sim_specs tag is not included in XMILE dokument!")
 
     /**
-     * Printing all data needed for 8. Base-Level Conformance
+     * Working ++ (tested and confirmed rules with Test12, Test13 and Test14)
+     * But resolving inconsistencies between multiple sim_specs needs to be created.
      */
-    //println(methodSD)
-    //println(timeUnitSD)
-    //println(initialTime)
-    //println(finalTime)
-    //println(timeStep)
-
-    /**
-     * Returning the values in header tag with data saved in map structure
-     */
-
-    val SimSpecsTagDataMap =mapOf("Method" to methodSD, "Time unit" to timeUnitSD, "Initial time" to initialTime,
-        "Final time" to finalTime, "Time step" to timeStep)
-
-
-    return SimSpecsTagDataMap
-
-    /**
-     * Working ++
-     * But needs improvement for checking errors in simSpecs tag and resolving inconsistencies between multiple sim_specs
-     */
-
 }
 
 /**
@@ -265,13 +358,16 @@ fun gettingBehaviorTagData(tokens: MutableList<String>):String{
 }
 
 
-
-
-
+/**
+ * XMILE file
+ * 11. MUST support all base functionality objects (Section 3.1 and all subsections)
+ * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
+ */
 
 /**
  * Creating tokens and removing wanted values with lexer function
  */
+
 
 fun Lexer(name: String){
 
@@ -286,10 +382,7 @@ fun Lexer(name: String){
     var tokens = createListOfStrings(name)
 
     //Removing view tags if possible
-
-    val TOP_VIEW = "<views"
-    val BOTTOM_VIEW ="</views>"
-    tokens = removeWantedTagBlock(tokens,TOP_VIEW,BOTTOM_VIEW)
+    tokens = removeWantedTagBlock(tokens,"<views","</views>")
     tokens.remove("<model_units>")
     tokens.remove("<model_units/>")
     //println(tokens)
@@ -308,19 +401,26 @@ fun Lexer(name: String){
 
     //2. Getting data from header of hr.unipu.transpiler.XMILE format
     val headerMap = gettingHeaderTagData(tokens)
+    val modelName = headerMap.getValue("Model name").toString()
     //println(headerMap)
 
     //3. Getting data from model of hr.unipu.transpiler.XMILE format
-    val model = gettingModelTagData(tokens)
+    val model = gettingModelTagData(tokens,modelName)
     println(model)
 
     //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
     val simSpecsMap = gettingSimSpecsTagData(tokens)
     //println(simSpecsMap)
 
-    //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
-    //val behavior = gettingBehaviorTagData(tokens)
+    //Getting data from options of hr.unipu.transpiler.XMILE format
+    val options = gettingOptionsTagData(tokens)
+    //println(options)
+
+    //Getting data from behaviour of hr.unipu.transpiler.XMILE format
+    val behavior = gettingBehaviorTagData(tokens)
     //println(behavior)
+
+
 
 }
 

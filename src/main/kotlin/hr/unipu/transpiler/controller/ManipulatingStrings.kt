@@ -76,7 +76,7 @@ fun getWantedString(string0: String, breakPoint: Char, wantedString: String): St
     val tokens = mutableListOf<String>()
 
     for (i in string0.indices) {
-        if ((string0[i] == breakPoint) or (string0[i] == '>')) {
+        if ((string0[i] == breakPoint) or (string0[i] == '/') or (string0[i] == '>')) {
             tokens.add(token)
             token = ""
         } else {
@@ -99,7 +99,32 @@ fun getWantedString(string0: String, breakPoint: Char, wantedString: String): St
 /**
  * Getting data in between opening and closing tags:
  * Function: getDataInTag
+ *           getDataInTags
  */
+
+fun getDataInTags(list0: MutableList<String>,breakPoint: String):MutableList<String> {
+
+    var indexList = mutableListOf<Int>()
+    var list1=list0
+    var list2 = mutableListOf<String>()
+
+    for (  (index, token) in list0.withIndex()){
+
+        val result = token.contains(breakPoint)
+
+        if(result){
+            indexList.add(index)
+        }
+    }
+
+    for(index in indexList.indices) {
+             list1 = list0.subList(indexList[index], indexList[index] +1)
+             list2 = (list2+list1) as MutableList<String>
+    }
+
+    return list2
+
+}
 
 fun getDataInTag(list0: List<String>,breakPoint: String):String {
 
@@ -128,16 +153,17 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
 }
 /**
  * Function for getting specific tag block:
+ *                                         separateSameTags
  *                                         breakListToSublist
- *
+ *                                         getLowerLevelOfList
  */
 
-fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBreakPoint: String): MutableList<String>{
+fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBreakPoint: String): MutableList<MutableList<String>>{
 
     var indexTop = mutableListOf<Int>()
     var indexBottom = mutableListOf<Int>()
     var list1=list0
-    var list2= mutableListOf<String>()
+    var list2 = mutableListOf<MutableList<String>>()
 
 
     for ( (index, token) in list0.withIndex()) {
@@ -146,7 +172,7 @@ fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBre
         val resultLast = token.contains(lastBreakPoint)
 
         if (resultFirst) {
-            indexTop.add(index-1)
+            indexTop.add(index)
 
         } else if (resultLast) {
             indexBottom.add(index+1)
@@ -156,7 +182,7 @@ fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBre
     for(index in indexTop.indices){
 
         list1 = list0.subList(indexTop[index],indexBottom[index])
-        list2 = (list2+list1) as MutableList<String>
+        list2.add(list1)
     }
 
     return list2
@@ -179,11 +205,53 @@ fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, last
             val resultLast = token.contains(lastBreakPoint)
 
             if (resultFirst) {
-                indexTop.add(index-1)
+                indexTop.add(index)
                 counterTop++
 
             } else if (resultLast) {
                 indexBottom.add(index+1)
+                counterBottom++
+
+            }
+        }
+        if (counterTop==counterBottom){
+            for(index in indexTop.indices){
+
+                list1 = list0.subList(indexTop[index],indexBottom[index])
+                list2 = (list2+list1) as MutableList<String>
+            }}else {
+            println("Some tag are not opened or closed properly!!!")
+        }
+    }catch(ex:java.lang.Exception){
+        print(ex.message)
+    }
+
+    return list2
+}
+
+fun getLowerLevelOfList(list0: MutableList<String>, firstBreakPoint: String, lastBreakPoint: String): MutableList<String> {
+
+
+    var indexTop = mutableListOf<Int>()
+    var indexBottom = mutableListOf<Int>()
+    var list1=list0
+    var list2= mutableListOf<String>()
+    var counterTop=0
+    var counterBottom=0
+
+
+    try{
+        for ( (index, token) in list0.withIndex()) {
+
+            val resultFirst = token.contains(firstBreakPoint)
+            val resultLast = token.contains(lastBreakPoint)
+
+            if (resultFirst) {
+                indexTop.add(index+2)
+                counterTop++
+
+            } else if (resultLast) {
+                indexBottom.add(index-1)
                 counterBottom++
 
             }
@@ -203,7 +271,5 @@ fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, last
 
     return list2
 }
-
-
 
 
