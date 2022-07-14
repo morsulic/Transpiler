@@ -59,3 +59,7 @@ fun removeWantedTagBlock (list0: MutableList<String>, firstBreakPoint: String, l
     return list1
 }
 
+fun removeComma(name: String): String{
+
+    return ""
+}

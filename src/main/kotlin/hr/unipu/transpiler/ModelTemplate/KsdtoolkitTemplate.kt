@@ -126,6 +126,7 @@ var initializationOfModel="init {\n" +
         "    }\n" +
         "\n" +
         "}"
+
 var KSDtemplate = descriptionPackage + constantValues + initializationOfModel
 
 fun getKSDTemplate():String{
