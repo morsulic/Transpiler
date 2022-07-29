@@ -11,9 +11,9 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
 
     val list = getDataInTag(tokens, "<xmile")
     //println(list)
-    var versionXMILE = getWantedString(list, ' ', "version")
-    var xmlns = getWantedString(list, ' ', "xmlns")
-    var xmlns1 = getWantedString(list, ' ', "xmlns:isee")
+    var versionXMILE = getWantedString(list,  "version")
+    var xmlns = getWantedString(list,  "xmlns")
+    var xmlns1 = getWantedString(list,  "xmlns:isee")
 
     /**
      * Returning the values in XMILE tag with data saved in map structure if every condition for XMILE tag is satisfied
@@ -48,7 +48,7 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
         val modelVendor = breakListToSubList(headerList, "<vendor", "</vendor>")
         val productName = breakListToSubList(headerList, "<product", "</product>")
         val modelProductList = getDataInTag(headerList, "<product")
-        var versionProduct = getWantedString(modelProductList, ' ', "version")
+        var versionProduct = getWantedString(modelProductList,  "version")
 
         if (modelName.isEmpty() || modelVendor.isEmpty() || productName.isEmpty() || versionProduct == "" ){
 
@@ -98,19 +98,18 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
  *             gettingModules (Section 3.1.5)
  */
 
-
-
-fun gettingStocks(token: MutableList<String>,modelName: String, stockNameToken:String):MutableList<Map<String,Any>>{
+fun gettingStocks(token: MutableList<String>, stockNameToken:String):MutableList<Map<String,Any>>{
 
     var tStock= mutableListOf<Map<String,Any>>()
 
 
 
-    val stockName = getWantedString(stockNameToken, ' ', "name")
+    val stockName = getWantedString(stockNameToken,  "name").lowercase().capitalize().replace(' ', '_')
     val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
     val inflowsList = separateSameTags(token,"<inflow", "</inflow>")
     val outflowsList = separateSameTags(token, "<outflow", "</outflow>")
     val units = breakListToSubList(token, "<units", "</units>")
+    val description = breakListToSubList(token, "<doc", "</doc>")
     val nonNegative = token.contains("</non_negative>")
     val inflows = mutableListOf<String>()
     val outflows = mutableListOf<String>()
@@ -123,42 +122,46 @@ fun gettingStocks(token: MutableList<String>,modelName: String, stockNameToken:S
         outflows.add(outflowsList[j][1])
     }
 
-    tStock.add(mapOf("modelName" to modelName))
-    tStock.add(mapOf("stockName" to stockName))
+    tStock.add(mapOf("stock" to "val $stockName = model.stock(\"$stockName\")"))
     if(valueEquationToken.isNotEmpty()){
-        tStock.add(mapOf("initialValueEquation" to valueEquationToken[1]))
+        val value= valueEquationToken[1]
+        tStock.add(mapOf("stock.initVal" to "$stockName.initialValue={ $value }"))
     }else{
-        tStock.add(mapOf("initialValueEquation" to "empty"))
+        tStock.add(mapOf("stock.initVal" to "$stockName.initialValue={ 0.0 }"))
     }
     tStock.add(mapOf("inflows" to inflows))
     tStock.add(mapOf("outflows" to outflows))
     if (units.isNotEmpty()){
-        tStock.add(mapOf("units" to units[1]))}
-    else{
-        tStock.add(mapOf("units" to "unit"))
+        val value=units[1]
+        tStock.add(mapOf("stock.unit" to "$stockName.unit =  \"$value\" "))
     }
-    tStock.add(mapOf("nonNegative" to nonNegative))
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tStock.add(mapOf("stock.description" to "$stockName.description =  \"$value\" "))
+    }
+    tStock.add(mapOf("nonNegative" to "$nonNegative "))
 
 
     return tStock
 
 }
 
-fun gettingFlows(token: MutableList<String>,modelName: String,flowNameToken: String): MutableList<Map<String,Any>>{
+fun gettingFlows(token: MutableList<String>,flowNameToken: String): MutableList<Map<String,Any>>{
 
     var tFlow= mutableListOf<Map<String,Any>>()
-    val flowName = getWantedString(flowNameToken, ' ', "name")
+    val flowName = getWantedString(flowNameToken, "name").lowercase().replace(' ', '_')
     val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
     val units = breakListToSubList(token, "<units", "</units>")
+    val description = breakListToSubList(token, "<doc", "</doc>")
     val nonNegative = token.contains("</non_negative>")
 
 
-    tFlow.add(mapOf("modelName" to modelName))
-    tFlow.add(mapOf("flowName" to flowName))
+    tFlow.add(mapOf("flow" to "val $flowName = model.flow(\"$flowName\")"))
     if(valueEquationToken.isNotEmpty()){
-        tFlow.add(mapOf("initialValueEquation" to valueEquationToken[1]))
+        val value= valueEquationToken[1]
+        tFlow.add(mapOf("flow.initVal" to "$flowName.initialValue={ $value }"))
     }else{
-        tFlow.add(mapOf("initialValueEquation" to "empty"))
+        tFlow.add(mapOf("flow.initVal" to "$flowName.initialValue={ 0.0 }"))
     }
     if (units.isNotEmpty()){
         tFlow.add(mapOf("units" to units[1]))}
@@ -172,25 +175,31 @@ fun gettingFlows(token: MutableList<String>,modelName: String,flowNameToken: Str
         var tGf=gettingGf(gf[0])
         tFlow.add(mapOf("graphs" to tGf))
     }
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tFlow.add(mapOf("flow.description" to "$flowName.description =  \"$value\" "))
+    }
 
     return tFlow
 }
 
-fun gettingAux(token: MutableList<String>,modelName: String,auxNameToken:String): MutableList<Map<String,Any>>{
+fun gettingAux(token: MutableList<String>,auxNameToken:String): MutableList<Map<String,Any>>{
     var tAux= mutableListOf<Map<String,Any>>()
-    val auxName = getWantedString(auxNameToken, ' ', "name")
-    val auxAccess= getWantedString(auxNameToken,  ' ', "access")
+    val auxName = getWantedString(auxNameToken, "name").lowercase()
+    val auxAccess= getWantedString(auxNameToken,  "access")
     val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
     val units = breakListToSubList(token, "<units", "</units>")
+    val description = breakListToSubList(token, "<doc", "</doc>")
     val nonNegative = token.contains("</non_negative>")
 
-    tAux.add(mapOf("modelName" to modelName))
-    tAux.add(mapOf("auxName" to auxName))
+    tAux.add(mapOf("converter" to "val $auxName = model.converter(\"$auxName\")"))
     tAux.add(mapOf("auxAccess" to auxAccess))
     if(valueEquationToken.isNotEmpty()){
-        tAux.add(mapOf("initialValueEquation" to valueEquationToken[1]))
+        val value= valueEquationToken[1]
+        tAux.add(mapOf("converter.initVal" to "$auxName.initialValue={ $value }"))
+
     }else{
-        tAux.add(mapOf("initialValueEquation" to "empty"))
+        tAux.add(mapOf("converter.initVal" to "$auxName.initialValue={ 0.0 }"))
     }
     if (units.isNotEmpty()){
         tAux.add(mapOf("units" to units[1]))}
@@ -198,35 +207,38 @@ fun gettingAux(token: MutableList<String>,modelName: String,auxNameToken:String)
         tAux.add(mapOf("units" to "unit"))
     }
     tAux.add(mapOf("nonNegative" to nonNegative))
-
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tAux.add(mapOf("stock.description" to "$auxName.description =  \"$value\" "))
+    }
     val gf = separateSameTags(token, "<gf", "</gf>")
     if(gf.isNotEmpty()){
        var tGf=gettingGf(gf[0])
-       tAux.add(mapOf("graphs" to tGf))
+       tAux.add(mapOf("graphs" to "$tGf"))
     }
 
     return tAux
 }
 
-fun gettingGf(token: MutableList<String>,modelName: String = "non", gfNameToken: String ="non"):MutableList<Map<String,Any>>{
+fun gettingGf(token: MutableList<String>, gfNameToken: String ="non"):MutableList<Map<String,Any>>{
     var tGf= mutableListOf<Map<String,Any>>()
-    val gfName = getWantedString(gfNameToken, ' ', "name")
-    if (gfName == "" && modelName != "non" && gfNameToken != "non"){
-        return mutableListOf(mapOf("There is non model grafs standing alone in model section." to
-                "but there could be in aux and flow section!!!"))
+    val gfName = getWantedString(gfNameToken,  "name")
+    if (gfName == ""  && gfNameToken != "non"){
+        return mutableListOf(mapOf("Error" to
+                "If graphs is outside aux or flow tag it must contained attribute name!!!"))
     }
-    if (modelName != "non" && gfNameToken != "non"){
-        tGf.add(mapOf("modelName" to modelName))
+    if (gfNameToken != "non"){
         tGf.add(mapOf("gfName" to gfName))
     }
     val xScale = getDataInTag(token,"<xscale")
     val yScale = getDataInTag(token,"<yscale")
-    val xMin = getWantedString(xScale, ' ', "min")
-    val xMax = getWantedString(xScale, ' ', "max")
-    val yMin = getWantedString(yScale, ' ', "min")
-    val yMax = getWantedString(yScale, ' ', "max")
+    val xMin = getWantedString(xScale,  "min")
+    val xMax = getWantedString(xScale,  "max")
+    val yMin = getWantedString(yScale,  "min")
+    val yMax = getWantedString(yScale, "max")
     val xPts= breakListToSubList(token,"<xpts","</xpts>")
     val yPts= breakListToSubList(token,"<ypts","</ypts>")
+    val description = breakListToSubList(token, "<doc", "</doc>")
 
     tGf.add(mapOf("xMin" to xMin))
     tGf.add(mapOf("xMax" to xMax))
@@ -242,188 +254,182 @@ fun gettingGf(token: MutableList<String>,modelName: String = "non", gfNameToken:
     }else{
         tGf.add(mapOf("yPts" to "empty"))
     }
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tGf.add(mapOf("gf.description" to "description =  \"$value\" "))
+    }
 
     return tGf
 
 }
 
-fun gettingGroup(token: MutableList<String>,modelName: String, groupNameToken: String): MutableList<Map<String,Any>>{
+fun gettingGroup(token: MutableList<String>, groupNameToken: String): MutableList<Map<String,Any>>{
     var tGroup= mutableListOf<Map<String,Any>>()
-    val groupName = getWantedString(groupNameToken, ' ', "name")
-    val run =  getWantedString(groupNameToken,' ',"run")
+    val groupName = getWantedString(groupNameToken, "name")
+    val run =  getWantedString(groupNameToken,"run")
+    val description = breakListToSubList(token, "<doc", "</doc>")
     var entityNameList = mutableListOf<String>()
 
-    tGroup.add(mapOf("modelName" to modelName))
     tGroup.add(mapOf("groupName" to groupName))
     tGroup.add(mapOf("run" to run))
 
     val groupEntityList = getDataInTags(token,"<entity")
-
-
-    for (index in groupEntityList.indices){
-        entityNameList.add(getWantedString(groupEntityList[index],' ', "name"))
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tGroup.add(mapOf("stock.description" to "$groupName.description =  \"$value\" "))
     }
 
-    tGroup.add(mapOf("entityNameList" to entityNameList))
+    for (index in groupEntityList.indices){
+        entityNameList.add(getWantedString(groupEntityList[index], "name"))
+    }
+
+    tGroup.add(mapOf("entityNameList" to "$entityNameList"))
 
     return tGroup
 }
 
-fun gettingModules(tokens: MutableList<String>,modelName: String): MutableList<Map<String,Any>>{
+fun gettingModules(tokens: MutableList<String>): MutableList<Map<String,Any>>{
 
     var connectionTo=""
     var connectionFrom=""
     var tModule= mutableListOf<Map<String,Any>>()
     var connectionToFrom= mutableListOf<Map<String,String>>()
     val moduleNameToken = getDataInTag(tokens, "<module")
-    val moduleName = getWantedString(moduleNameToken, ' ', "name")
+    val moduleName = getWantedString(moduleNameToken, "name")
+    val description = breakListToSubList(tokens, "<doc", "</doc>")
     val moduleConnectionList= getDataInTags(tokens,"<connect")
 
-    tModule.add(mapOf("modelName" to modelName))
+
     tModule.add(mapOf("moduleName" to moduleName))
+    if (description.isNotEmpty()){
+        val value=description[1]
+        tModule.add(mapOf("stock.description" to "$moduleName.description =  \"$value\" "))
+    }
 
     for(index in moduleConnectionList.indices){
-        connectionTo = getWantedString(moduleConnectionList[index], ' ', "to")
-        connectionFrom = getWantedString(moduleConnectionList[index],' ', "from")
+        connectionTo = getWantedString(moduleConnectionList[index],  "to")
+        connectionFrom = getWantedString(moduleConnectionList[index], "from")
         connectionToFrom.add( mapOf(connectionTo to connectionFrom))
     }
 
-    tModule.add(mapOf("connectionToFrom" to connectionToFrom))
+    tModule.add(mapOf("connectionToFrom" to "$connectionToFrom"))
 
     return tModule
 
 
 }
 
-fun gettingModelVariables(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>){
+fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>): MutableMap<String,Any>{
 
-    //println(tokens)
-    var tModule = mutableMapOf<Int,Any>()
-    var tStock = mutableMapOf<Int,Any>()
-    var tFlow  = mutableMapOf<Int,Any>()
-    var tAux = mutableMapOf<Int,Any>()
-    var tGf = mutableMapOf<Int,Any>()
-    var tGroup = mutableMapOf<Int,Any>()
+    var tModels = mutableMapOf<String,Any>()
+    var counter=0
 
-    var counterModule=0
-    var counterStock=0
-    var counterFlow=0
-    var counterAux=0
-    var counterGf=0
-    var counterGroup=0
 
     for(i in tokens.indices){
         val moduleList = separateSameTags(tokens[i], "<module", "</module>")
-        for((index, tokens) in moduleList.withIndex()){
-            tModule[counterModule]=gettingModules(moduleList[index],modelNameList[i])
-            counterModule++
+        for((index) in moduleList.withIndex()){
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingModules(moduleList[index])
+            counter++
         }
     }
-    println(tModule)
-    println("\n")
+
     for(i in tokens.indices){
         val stockList = separateSameTags(tokens[i],"<stock","</stock>")
         val stockNameToken = getDataInTags(tokens[i], "<stock")
         for((index)in stockList.withIndex()){
-            tStock[counterStock]=gettingStocks(stockList[index],modelNameList[i],stockNameToken[index])
-            counterStock++
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingStocks(stockList[index],stockNameToken[index])
+            counter++
         }
     }
-    println(tStock)
-    println("\n")
+
+
     for(i in tokens.indices){
         val flowList = separateSameTags(tokens[i],"<flow","</flow>")
         val flowNameToken = getDataInTags(tokens[i], "<flow")
         for((index)in flowList.withIndex()){
-            tFlow[counterFlow]=gettingFlows(flowList[index],modelNameList[i],flowNameToken[index])
-            counterFlow++
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingFlows(flowList[index],flowNameToken[index])
+            counter++
         }
     }
-    println(tFlow)
-    println("\n")
+
     for(i in tokens.indices){
         val auxList = separateSameTags(tokens[i],"<aux","</aux>")
         val auxNameToken = getDataInTags(tokens[i], "<aux")
         for((index)in auxList.withIndex()){
-            tAux[counterAux]=gettingAux(auxList[index],modelNameList[i],auxNameToken[index])
-            counterAux++
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingAux(auxList[index],auxNameToken[index])
+            counter++
         }
     }
-    println(tAux)
-    println("\n")
+
     for(i in tokens.indices){
         val gfList = separateSameTags(tokens[i],"<gf","</gf>")
         val gfNameToken = getDataInTags(tokens[i], "<gf")
         for((index)in gfList.withIndex()){
-            tGf[counterGf]=gettingGf(gfList[index],modelNameList[i],gfNameToken[index])
-            counterGf++
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingGf(gfList[index],gfNameToken[index])
+            counter++
         }
     }
-    println(tGf)
-    println("\n")
+
     for(i in tokens.indices){
         val groupList = separateSameTags(tokens[i],"<group","</group>")
         val groupNameToken = getDataInTags(tokens[i], "<group")
         for((index)in groupList.withIndex()){
-            tGroup[counterGroup]= gettingGroup(groupList[index],modelNameList[i],groupNameToken[index])
-            counterGroup++
+            tModels["\n"+modelNameList[i]+" "+counter]=gettingGroup(groupList[index],groupNameToken[index])
+            counter++
         }
     }
-    println(tGroup)
-    println("\n")
 
-
-
+    return tModels
 }
 
-fun gettingModelTagData(tokens: MutableList<String>,rootModelName: String):Map<String, Any> {
+fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): MutableMap<String, Any> {
 
     val modelNameList = mutableListOf<String>()
     val modelList = separateSameTags(tokens, "<model", "</model>")
-    // println(modelList)
+    var tModels = mutableMapOf<String,Any>()
 
+    if (modelList.isEmpty()) {
 
-    if (modelList.isEmpty()){
-
-        return mapOf("Error" to "Model tag is not included in XMILE dokument!")
+        return mutableMapOf("Error" to "Model tag is not included in XMILE dokument!")
 
     }
 
-    for((index) in modelList.withIndex()){
-        if (index==0){
+    for ((index) in modelList.withIndex()) {
+        if (index == 0) {
             //println(modelList[index])
             val rootModel = getDataInTag(modelList[index], "<model")
-            var nameRouteModel = getWantedString(rootModel, ' ', "name")
+            var nameRouteModel = getWantedString(rootModel,  "name")
 
-            if (nameRouteModel==""){
+            if (nameRouteModel == "") {
 
-                nameRouteModel=rootModelName
+                nameRouteModel = rootModelName
                 modelNameList.add(nameRouteModel)
                 //println(nameRouteModel)
 
             }
-        }else{
+        } else {
 
             val rootModel = getDataInTag(modelList[index], "<model")
-            val name= getWantedString(rootModel, ' ', "name")
-            if (name==""){
-                return mapOf("Error" to "Model or models beyond the root model are not properly named!")
+            val name = getWantedString(rootModel,  "name")
+            if (name == "") {
+                return mutableMapOf("Error" to "Model or models beyond the root model are not properly named!")
             }
             modelNameList.add(name)
 
         }
     }
-
-    gettingModelVariables(modelList,modelNameList)
-
-
-    return mapOf("OK" to "OK")
+    tModels=gettingModelsVariables(modelList, modelNameList)
+    tModels["model names"]=modelNameList
+    return tModels
 
     /**
      * Working Base-Level Conformance: 3. MUST include at least one <model> tag (Section 2) (confirmed with test4)
      *                                 4. MUST name models beyond the root model (Section 4) (confirmed with test17)
+     *                                 11.  MUST support all base functionality objects (Section 3.1 and all subsections)
      */
 }
+
+
 /**
  * XMILE file Base-Level Conformance
  * 7. MUST include, when using optional features, the <options> tag with those features specified (Section 2.2.1)
@@ -433,7 +439,7 @@ fun gettingModelTagData(tokens: MutableList<String>,rootModelName: String):Map<S
 fun gettingOptionsTagData(tokens: MutableList<String>):Map<String, Any>{
     val optionslList = breakListToSubList(tokens, "<options", "</options>")
     //println(optionslList)
-    val usesSubModels = getLowerLevelOfList(tokens, "<options", "</options>")
+    //val usesSubModels = getLowerLevelOfList(tokens, "<options", "</options>")
     // println(usesSubModels)
     return mapOf("" to "")
 }
@@ -455,8 +461,8 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
         val endOfInterval = breakListToSubList(simSpecsList, "<stop>", "</stop>")
         var interval = breakListToSubList(simSpecsList, "<dt>", "</dt>")
         val simSpecsTopString = getDataInTag(tokens, "<sim_specs")
-        var methodSD = getWantedString(simSpecsTopString, ' ', "method")
-        var timeUnitSD = getWantedString(simSpecsTopString, ' ', "time_units")
+        var methodSD = getWantedString(simSpecsTopString,  "method")
+        var timeUnitSD = getWantedString(simSpecsTopString,  "time_units")
         val a = startOfInterval[1].toDoubleOrNull()
         val b = endOfInterval[1].toDoubleOrNull()
         val c = interval[1].toDoubleOrNull()

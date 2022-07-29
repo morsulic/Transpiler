@@ -5,8 +5,8 @@ import hr.unipu.transpiler.controller.*
 
 fun main() {
     //ReadFromFile("hares_and_foxes")
-    Lexer("hares_and_foxes")
-    //Lexer("Vacation")
+    //Lexer("hares_and_foxes")
+    Lexer("Vacation")
 
     /**
      * Testing functionality of removing view tag
@@ -84,7 +84,8 @@ fun Lexer(name: String){
     //Creating list of strings (token blocks) from hr.unipu.transpiler.XMILE format
     var tokens = createListOfStrings(name)
 
-
+    //Preparing names for transpiling
+    tokens = preparingNamesForTranspiling(tokens)
 
     //Removing view tags if possible
     tokens = removeWantedTagBlock(tokens,"<views","</views>")
@@ -113,7 +114,7 @@ fun Lexer(name: String){
     //println("\n")
     //3. Getting data from model of hr.unipu.transpiler.XMILE format
     val model = gettingModelTagData(tokens,modelName)
-    println(model)
+    printModelsData(model)
     println("\n")
     //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
     val simSpecsMap = gettingSimSpecsTagData(tokens)

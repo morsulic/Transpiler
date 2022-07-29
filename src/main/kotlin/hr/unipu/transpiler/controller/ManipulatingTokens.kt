@@ -70,13 +70,13 @@ fun breakString(string0: String,breakPoint: Char): String {
     return tokenString
 }
 
-fun getWantedString(string0: String, breakPoint: Char, wantedString: String): String{
+fun getWantedString(string0: String, wantedString: String): String{
 
     var token=""
     val tokens = mutableListOf<String>()
 
     for (i in string0.indices) {
-        if ((string0[i] == breakPoint) or (string0[i] == '/') or (string0[i] == '>')) {
+        if ((string0[i] == ' ') or (string0[i] == '/') or (string0[i] == '>')) {
             tokens.add(token)
             token = ""
         } else {
@@ -95,7 +95,33 @@ fun getWantedString(string0: String, breakPoint: Char, wantedString: String): St
     return ""
 }
 
+fun getWantedString2(string0: String, wantedString: String): String{
+    var token=""
+    val tokens = mutableListOf<String>()
+    var counter = 1
 
+    for (i in string0.indices) {
+        if ((string0[i] == '"' && counter == 2) or (string0[i] == '/') or (string0[i] == '>')) {
+            tokens.add(token)
+            token = ""
+        } else if (string0[i] == '"'){
+            counter++
+            token += string0[i]
+        }else{
+            token += string0[i]
+        }
+    }
+    println(tokens)
+    for((index, token) in tokens.withIndex()){
+        val result = token.contains(wantedString)
+        if(result){
+            val list1 = tokens.subList(index,index+1)
+            val wantedSD = breakString(list1[0],'"')
+            return wantedSD
+        }
+    }
+    return ""
+}
 /**
  * Getting data in between opening and closing tags:
  * Function: getDataInTag
@@ -151,8 +177,9 @@ fun getDataInTag(list0: List<String>,breakPoint: String):String {
         return ""
     }
 }
+
 /**
- * Function for getting specific tag block:
+ * Functions for getting specific tag block:
  *                                         separateSameTags
  *                                         breakListToSublist
  *                                         getLowerLevelOfList
@@ -187,6 +214,7 @@ fun separateSameTags(list0: MutableList<String>,firstBreakPoint: String, lastBre
 
     return list2
 }
+
 fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, lastBreakPoint: String): MutableList<String> {
 
 
@@ -270,6 +298,36 @@ fun getLowerLevelOfList(list0: MutableList<String>, firstBreakPoint: String, las
     }
 
     return list2
+}
+
+/**
+ * Function for arranging data to specific model:
+ *                            preparingNamesForTranspiling
+ *                           This function will be important for base level conformance
+ *                           12.  MUST obey the grammar for numbers, variables, and expressions
+ *                           (Sections 3.2 and 3.3, and all subsections except Sections 3.3.5 and 3.3.6).
+ */
+
+fun preparingNamesForTranspiling(list0: MutableList<String>): MutableList<String>{
+    var counter=1
+
+     for(index in list0.indices){
+         if(list0[index].contains("name=")){
+          for (i in list0[index].indices){
+
+            if(list0[index][i] =='"'){
+              counter++
+            }else if(counter%2==0 && list0[index][i]==' '){
+
+                list0[index] = list0[index].substring(0, i) + '_' + list0[index].substring(i + 1)
+
+            }else if(list0[index][i]=='"' && counter%2==0 ){
+             counter++
+            }
+          }
+        }
+     }
+ return list0
 }
 
 
