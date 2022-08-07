@@ -23,15 +23,15 @@
 	<isee:sensi_specs run="false" method="multivariate" runs="0"/>
 	<model>
 		<variables>
-			<stock name="Vacation Effect on\nDecompression">
+			<stock name="1Vacation  \"Effect\\ on\nDecompression_">
 				<eqn>desired_effect_from_vacation</eqn>
 				<inflow>adjust_vacation_effect</inflow>
 				<non_negative/>
 			</stock>
-			<flow name="adjust vacation\neffect">
+			<flow name="&adjust\n vacation\neffect_">
 				<eqn>(desired_effect_from_vacation - Vacation_Effect_on_Decompression)/time_to_adjust_effect</eqn>
 			</flow>
-			<aux name="vacation" flow_concept="true">
+			<aux name="@vacation_" flow_concept="true">
 				<eqn>IF (vacation_switch = 1 AND total_weeks_vacation_taken &lt; 4)
 THEN (IF TIME - Last_Vacation_Start &gt;= time_working_before_vacation THEN 1 
 ELSE 0)

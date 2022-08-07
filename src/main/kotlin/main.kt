@@ -5,8 +5,8 @@ import hr.unipu.transpiler.controller.*
 
 fun main() {
     //ReadFromFile("hares_and_foxes")
-    Lexer("hares_and_foxes")
-    //Lexer("Vacation")
+    //Lexer("hares_and_foxes")
+    Lexer("Vacation")
 
     /**
      * Testing functionality of removing view tag

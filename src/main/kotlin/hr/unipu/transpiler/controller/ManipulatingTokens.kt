@@ -232,34 +232,87 @@ fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, last
 
 
 /**
- * Function for arranging data to specific model:
- *                            preparingNamesForTranspiling
- *                           This function will be important for base level conformance
+ * Functions for arranging data names to specific namespace rules:
+ *                           checkFirstChar
+ *                           checkLastChar
+ *                           margeNameRules->combines(checkFirstChar, checkLastChar, preparingNamesForTranspiling)
+ *                           preparingNamesForTranspiling -> has function margeNamesRules (Section 3.2)
+ *                           This functions will be important for base level conformance
  *                           12.  MUST obey the grammar for numbers, variables, and expressions
  *                           (Sections 3.2 and 3.3, and all subsections except Sections 3.3.5 and 3.3.6).
  */
 
+fun checkFirstChar(name: String): String{
+    val validChars = listOf<Char>('q','w','e','r','t','z','u','i','o','p','a','s','d','f','g','h','j','k','l','y','x',
+        'c', 'v','b','n','m','Q','W','E','R','T','Z','U','I','O','P','A','S','D','F','G','H','J','K','L','Y','X','C',
+        'V','B','N','M')
+   var name1 = name
+    for(index in name.indices){
+        if(validChars.contains(name[index])){
+            return name1
+        }else{
+          name1 = name.removeRange(index,index+1)
+        }
+    }
+    return name1
+}
+fun checkLastChar(name: String): String {
+    return name.dropLastWhile { it == '_' }
+}
+fun removeExtraSpace(name: String): String{
+    var name1=name
+    for(index in name.indices){
+        if(name[index]=='_'&& name[index+1]=='_'){
+                name1=name1.removeRange(index,index+1)
+        }
+    }
+    return name1
+}
+fun margeNameRules(name: String): String{
+    var name1= name
+    name1 = checkFirstChar(name1)
+    name1 = checkLastChar(name1)
+    name1 = removeExtraSpace(name1)
+    return name1
+}
 fun preparingNamesForTranspiling(list0: MutableList<String>): MutableList<String>{
-    var counter=1
+     var counter=1
+     var name=""
+     var nameHelp=""
+
+     var operatorsAndBulitInFunctions =listOf<String>("AND","OR","NOT","IF","THEN","ELSE","STD","ABS","ARCCOS","ARCSIN",
+         "ARCTAN","COS","EXP","INF","INT","LN","LOG10","MAX","MIN","PI","SIN","SQRT","TAN","EXPRND","LOGNORMAL","NORMAL",
+         "POISSON","RANDOM", "DELAY","DELAY1","DELAY3","DELAY3","DELAYN","FORCST","SMTH1", "SMTH3","SMTHN","TREND",
+         "PULSE","RAMP","STEP","DT","STARTTIME","STOPTIME","TIME","INIT","PREVIOUS","MOD")
 
      for(index in list0.indices){
-         if(list0[index].contains("name=")){
-             list0[index]=list0[index].replace("\\n","_")
-          for (i in list0[index].indices){
+         if(list0[index].contains("name=")) {
+             list0[index] = list0[index].replace("\\n", "_")
+             list0[index] = list0[index].replace("\\\\", "")
+             list0[index] = list0[index].replace("\\\"", "")
+             for (i in list0[index].indices) {
 
-            if(list0[index][i] =='"'){
-              counter++
-            }else if(counter%2==0 && list0[index][i]==' '){
+                 if (list0[index][i] == '"') {
+                     counter++
+                 } else if (counter % 2 == 0 && list0[index][i] == ' ') {
 
-                list0[index] = list0[index].substring(0, i) + '_' + list0[index].substring(i + 1)
+                     list0[index] = list0[index].substring(0, i) + '_' + list0[index].substring(i + 1)
 
-            }else if(list0[index][i]=='"' && counter%2==0 ){
-             counter++
-            }
-          }
-        }
+                 } else if (list0[index][i] == '"' && counter % 2 == 0) {
+                     counter++
+                 }
+             }
+             nameHelp = getWantedString(list0[index], "name")
+             name = getWantedString(list0[index], "name")
+             name = margeNameRules(name)
+             if (operatorsAndBulitInFunctions.contains(name.uppercase())) {
+                 error("You can not use this name: $name as your name because it is bulit-in global variable!!!")
+             }
+             list0[index] = list0[index].replace(nameHelp, name)
+         }
      }
- return list0
+
+     return list0
 }
 
 

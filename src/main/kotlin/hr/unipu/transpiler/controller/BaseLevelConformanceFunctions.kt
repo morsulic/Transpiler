@@ -49,6 +49,7 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
         val productName = breakListToSubList(headerList, "<product", "</product>")
         val modelProductList = getDataInTag(headerList, "<product")
         var versionProduct = getWantedString(modelProductList,  "version")
+        val subModelOptionsBool= gettingOptionsTagData(headerList)
 
         if (modelName.isEmpty() || modelVendor.isEmpty() || productName.isEmpty() || versionProduct == "" ){
 
@@ -63,7 +64,9 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
              * Returning the values in header tag with data saved in map structure
              */
 
-            val HeaderTagDataMap =mapOf("Model name" to modelNameTxt, "Vendor" to modelVendorTxt, "Product name" to productNameTxt,"Product version" to versionProduct)
+            val HeaderTagDataMap =mapOf("Model name" to modelNameTxt, "Vendor" to modelVendorTxt,
+                "Product name" to productNameTxt,"Product version" to versionProduct,
+                "Options SubModel" to subModelOptionsBool)
 
 
             return HeaderTagDataMap
@@ -122,9 +125,10 @@ fun helpTestUnitDes(tMap: MutableMap<String,Any>,modelName: String, name: String
 }
 
 fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, modelName: String,stockNameToken:String){
-    val stockName = getWantedString(stockNameToken,  "name").lowercase().replaceFirstChar { it.uppercase() }
+    val stockName = getWantedString(stockNameToken,  "name").lowercase().replaceFirstChar { it.uppercase()}
 
     if(stockNameToken.isNotEmpty()) {
+
         val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
         val inflowsList = separateSameTags(token, "<inflow", "</inflow>")
         val outflowsList = separateSameTags(token, "<outflow", "</outflow>")
@@ -184,7 +188,9 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
 fun gettingFlows(token: MutableList<String>,tModel: MutableMap<String,Any>, modelName: String, flowNameToken: String){
 
     val flowName = getWantedString(flowNameToken, "name").lowercase().replace(' ', '_')
+
     if(flowName.isNotEmpty()) {
+
         val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
         val units = breakListToSubList(token, "<units", "</units>")
         val description = breakListToSubList(token, "<doc", "</doc>")
@@ -225,6 +231,7 @@ fun gettingAux(token: MutableList<String>, tModel: MutableMap<String, Any>, mode
     val auxName = getWantedString(auxNameToken, "name").lowercase()
 
     if(auxName.isNotEmpty()) {
+
         val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
         val units = breakListToSubList(token, "<units", "</units>")
         val description = breakListToSubList(token, "<doc", "</doc>")
@@ -459,15 +466,14 @@ fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): Mut
 /**
  * XMILE file Base-Level Conformance
  * 7. MUST include, when using optional features, the <options> tag with those features specified (Section 2.2.1)
+ * Only optional feature that ksdtoolkit uses is feature sub_models thus it is the only one that needs to be implemented
+ * in Base-Level Conformance 7.
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
-fun gettingOptionsTagData(tokens: MutableList<String>):Map<String, Any>{
+fun gettingOptionsTagData(tokens: MutableList<String>): Boolean {
     val optionslList = breakListToSubList(tokens, "<options", "</options>")
-    //println(optionslList)
-    //val usesSubModels = getLowerLevelOfList(tokens, "<options", "</options>")
-    // println(usesSubModels)
-    return mapOf("" to "")
+    return optionslList.contains("<uses_submodels/>")
 }
 
 
