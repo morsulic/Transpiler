@@ -86,6 +86,11 @@
         </views>
     </model>
     <model name="hares">
+        <sim_specs method="Euler" time_units="time" isee:pause_after_rates="false" isee:instantaneous_flows="false">
+            <start>0</start>
+            <stop>18</stop>
+            <dt>0.6</dt>
+        </sim_specs>
         <variables>
             <stock name="hares">
                 <eqn>50000 </eqn>

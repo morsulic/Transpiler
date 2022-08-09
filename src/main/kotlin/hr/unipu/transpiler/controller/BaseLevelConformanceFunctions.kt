@@ -21,7 +21,8 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
 
     if(versionXMILE=="" || xmlns ==""){
 
-        return mapOf("Error" to "XMILE tag not properly configured!!!")
+        error("Error: XMILE tag not properly configured!!! 1. MUST include an <xmile> tag that contains both the " +
+                "version of XMILE used and the XMILE XML namespace (Section 2)")
     }
     else{
 
@@ -53,7 +54,8 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
 
         if (modelName.isEmpty() || modelVendor.isEmpty() || productName.isEmpty() || versionProduct == "" ){
 
-            return mapOf("Error" to "Header tag not properly configured!!!")
+            error("Error: Header tag not properly configured!!! 2. MUST include a <header> tag (Section 2) with " +
+                    "sub-tags <vendor> and <product> with its version number (Section 2.2)")
 
         }else{
             var modelNameTxt = modelName[1]
@@ -74,7 +76,7 @@ fun gettingHeaderTagData(tokens: MutableList<String>): Map<String, Any> {
 
     }
 
-    return mapOf("Error" to "Header tag not properly configured!!!")
+    error ("Error: Header tag not properly configured!!!")
 
     /**
      * Working ++ (tested and confirmed rules with Test9, Test10 and Test11)
@@ -127,7 +129,7 @@ fun helpTestUnitDes(tMap: MutableMap<String,Any>,modelName: String, name: String
 fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, modelName: String,stockNameToken:String){
     val stockName = getWantedString(stockNameToken,  "name").lowercase().replaceFirstChar { it.uppercase()}
 
-    if(stockNameToken.isNotEmpty()) {
+    if(stockName.isNotEmpty()) {
 
         val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
         val inflowsList = separateSameTags(token, "<inflow", "</inflow>")
@@ -181,7 +183,7 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
 
         helpTestUnitDes(tModel, modelName, stockName, units, description, nonNegative)
     }else{
-        println("Error " + "Stock name must not be empty!!!")
+        error("Error: Stock name must not be empty!!!")
     }
 }
 
@@ -220,7 +222,7 @@ fun gettingFlows(token: MutableList<String>,tModel: MutableMap<String,Any>, mode
             gettingGf(gf[0],tModel)
         }
     }else{
-        println("Error" to "Flow name must not be empty!!!")
+        error("Error: Flow name must not be empty!!!")
     }
 
 
@@ -263,7 +265,7 @@ fun gettingAux(token: MutableList<String>, tModel: MutableMap<String, Any>, mode
             gettingGf(gf[0],tModel)
         }
     }else{
-        println("Error " +"Aux name must not be empty!!!")
+        error("Error: Aux name must not be empty!!!")
     }
 
 }
@@ -358,8 +360,33 @@ fun gettingModules(tokens: MutableList<String>, tModel: MutableMap<String,Any>){
     tModel += mapOf("connectionToFrom" to "$connectionToFrom")
 }
 
-fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>): MutableMap<String,Any>{
+fun gettingModelSimSpecs(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>,simSpecMap: MutableMap<String, Any>):
+        MutableMap<String,Any>{
+    var mapSimSpecs = mutableMapOf<String, Any>()
+    var name = ""
 
+    for (index in tokens.indices){
+        mapSimSpecs += gettingSimSpecsTagData(tokens[index],modelNameList[index])
+        name=modelNameList[index]
+
+        if(mapSimSpecs.contains("SimSpecs empty $name")){
+            mapSimSpecs.remove("SimSpecs empty $name")
+            mapSimSpecs += "Model name $name" to "model.name = \"$name\"\t// name is optional"
+            mapSimSpecs += "Method $name" to ""+simSpecMap.getValue("Method non")
+            mapSimSpecs += "Time unit $name" to ""+simSpecMap.getValue("Time unit non")
+            mapSimSpecs += "companion object simSpec Initial time $name" to "const val INITIAL_TIME_VALUE = "+
+                    simSpecMap.getValue("companion object simSpec Initial time non")
+            mapSimSpecs += "companion object simSpec Final time $name" to "const val FINAL_TIME_VALUE = "+
+                    simSpecMap.getValue("companion object simSpec Final time non")
+            mapSimSpecs += "companion object simSpec Time step $name" to "const val TIME_STEP_VALUE = "+
+                    simSpecMap.getValue("companion object simSpec Time step non")
+        }
+    }
+    //println(mapSimSpecs)
+    return mapSimSpecs
+}
+
+fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>): MutableMap<String,Any>{
     var tModel= mutableMapOf<String,Any>()
 
     for(i in tokens.indices){
@@ -415,7 +442,7 @@ fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameLis
     return tModel
 }
 
-fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): MutableMap<String, Any> {
+fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String, simSpecMap: MutableMap<String,Any>): MutableMap<String, Any> {
 
     val modelNameList = mutableListOf<String>()
     val modelList = separateSameTags(tokens, "<model", "</model>")
@@ -423,7 +450,7 @@ fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): Mut
 
     if (modelList.isEmpty()) {
 
-        return mutableMapOf("Error" to "Model tag is not included in XMILE dokument!")
+        error("Error: Model tag is not included in XMILE dokument!")
 
     }
 
@@ -445,13 +472,14 @@ fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): Mut
             val rootModel = getDataInTag(modelList[index], "<model")
             val name = getWantedString(rootModel,  "name")
             if (name == "") {
-                return mutableMapOf("Error" to "Model or models beyond the root model are not properly named!")
+                error("Error: Model or models beyond the root model are not properly named!")
             }
             modelNameList.add(name)
 
         }
     }
-    tModels=gettingModelsVariables(modelList, modelNameList)
+    tModels = gettingModelsVariables(modelList, modelNameList)
+    tModels += gettingModelSimSpecs(modelList,modelNameList,simSpecMap)
     tModels["model names"]=modelNameList
     return tModels
 
@@ -465,6 +493,7 @@ fun gettingModelTagData(tokens: MutableList<String>, rootModelName: String): Mut
 
 /**
  * XMILE file Base-Level Conformance
+ * 6. MUST obey the namespace rules (Section 2.1 and 2.2.1)
  * 7. MUST include, when using optional features, the <options> tag with those features specified (Section 2.2.1)
  * Only optional feature that ksdtoolkit uses is feature sub_models thus it is the only one that needs to be implemented
  * in Base-Level Conformance 7.
@@ -483,12 +512,13 @@ fun gettingOptionsTagData(tokens: MutableList<String>): Boolean {
  * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
  */
 
-fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
+fun gettingSimSpecsTagData(tokens: MutableList<String>,modelName: String = "non"): MutableMap<String, Any> {
 
     //Getting data from sim_specs of hr.unipu.transpiler.XMILE format
 
     val simSpecsList = breakListToSubList(tokens,"<sim_specs","</sim_specs>")
     if(simSpecsList.isNotEmpty()) {
+        var simSpecsTagDataMap = mutableMapOf<String,Any>()
         val startOfInterval = breakListToSubList(simSpecsList, "<start>", "</start>")
         val endOfInterval = breakListToSubList(simSpecsList, "<stop>", "</stop>")
         var interval = breakListToSubList(simSpecsList, "<dt>", "</dt>")
@@ -499,9 +529,10 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
         val b = endOfInterval[1].toDoubleOrNull()
         val c = interval[1].toDoubleOrNull()
 
-        if (startOfInterval.isEmpty() || endOfInterval.isEmpty() || a == null || b == null) {
+        if ((startOfInterval.isEmpty() || endOfInterval.isEmpty() || a == null || b == null) && modelName=="non") {
 
-            return mapOf("Error" to "Sim_specs start or stop tag not properly configured!!!")
+            error("Error: Sim_specs start or stop tag not properly configured!!! 8. MUST contain at least one set of " +
+                    "simulation specifications (Section 2.3)")
 
         } else if (c == null || interval.isEmpty() && (a != null && b != null)) {
 
@@ -509,12 +540,21 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
             var finalTime = endOfInterval[1].toDouble()
             var timeStep = 1.0
 
-            val SimSpecsTagDataMap = mapOf(
-                "Method" to methodSD, "Time unit" to timeUnitSD, "Initial time" to initialTime,
-                "Final time" to finalTime, "Time step" to timeStep
-            )
+            if(methodSD.lowercase().contains("euler")){
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType = EulerIntegration()"
+            }else if(methodSD.lowercase().contains("runge")||methodSD.lowercase().contains("kutta")){
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType =  RungeKuttaIntegration()"
+            }else{
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType = EulerIntegration()\t//EulerIntegration is default integration"
+            }
+            simSpecsTagDataMap += "Model name $modelName" to "model.name = \"$modelName\"\t// name is optional"
+            simSpecsTagDataMap += "Time unit $modelName" to "model.timeUnit = \"$timeUnitSD\"\t// unit is optional"
+            simSpecsTagDataMap += "companion object simSpec Initial time $modelName" to "const val INITIAL_TIME_VALUE = $initialTime"
+            simSpecsTagDataMap += "companion object simSpec Final time $modelName" to "const val FINAL_TIME_VALUE = $finalTime"
+            simSpecsTagDataMap += "companion object simSpec Time step $modelName" to "const val TIME_STEP_VALUE = $timeStep"
 
-            return SimSpecsTagDataMap
+
+            return simSpecsTagDataMap
 
         } else if (a != null && b != null && c != null) {
 
@@ -522,20 +562,31 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>): Map<String, Any> {
             var finalTime = endOfInterval[1].toDouble()
             var timeStep = interval[1].toDouble()
 
+            if(methodSD.lowercase().contains("euler")){
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType = EulerIntegration()"
+            }else if(methodSD.lowercase().contains("runge")||methodSD.lowercase().contains("kutta")){
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType =  RungeKuttaIntegration()"
+            }else{
+                simSpecsTagDataMap += "Method $modelName" to "model.integrationType = EulerIntegration()\t//EulerIntegration is default integration"
+            }
 
-            val SimSpecsTagDataMap = mapOf(
-                "Method" to methodSD, "Time unit" to timeUnitSD, "Initial time" to initialTime,
-                "Final time" to finalTime, "Time step" to timeStep
-            )
+            simSpecsTagDataMap += "Model name $modelName" to "model.name = \"$modelName\"\t// name is optional"
+            simSpecsTagDataMap += "Time unit $modelName" to "model.timeUnit = \"$timeUnitSD\"\t// unit is optional"
+            simSpecsTagDataMap += "companion object simSpec Initial time $modelName" to "const val INITIAL_TIME_VALUE = $initialTime"
+            simSpecsTagDataMap += "companion object simSpec Final time $modelName" to "const val FINAL_TIME_VALUE = $finalTime"
+            simSpecsTagDataMap += "companion object simSpec Time step $modelName" to "const val TIME_STEP_VALUE = $timeStep"
 
 
-            return SimSpecsTagDataMap
-        }else{
-            return mapOf("Error" to "Sim_specs tag not properly configured!!!")
+            return simSpecsTagDataMap
+
+        }else if(modelName=="non"){
+            error("Error: Sim_specs tag not properly configured!!! 8. MUST contain at least one set of simulation " +
+                    "specifications (Section 2.3)")
         }
+    }else if(modelName=="non") {
+        error("Error: Sim_specs tag is not included in XMILE dokument!")
     }
-    return mapOf("Error" to "Sim_specs tag is not included in XMILE dokument!")
-
+    return mutableMapOf("SimSpecs empty $modelName" to modelName)
     /**
      * Working ++ (tested and confirmed rules with Test12, Test13 and Test14)
      * But resolving inconsistencies between multiple sim_specs needs to be created.

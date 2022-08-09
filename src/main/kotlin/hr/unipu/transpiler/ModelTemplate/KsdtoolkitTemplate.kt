@@ -13,8 +13,8 @@ var constantValuesBeginning="\n" +
         "\n" +
         "    // Static properties:\n" +
         "    companion object {\n"
-var initializationOfModelCreateAllSystemElements="}\n\n" +
-        "init {\n" +
+var initializationOfModelCreateAllSystemElements=
+        "\n\ninit {\n" +
         "\n" +
         "        // 1. Create the model (with setup of: time boundaries & time step & integrationType type)\n" +
         "        val model = this   // inheritance: Model()\n" +
@@ -38,20 +38,18 @@ var initializationOfModelCreateAllSystemElements="}\n\n" +
         "        // override default model properties:\n" +
         "        model.initialTime = INITIAL_TIME_VALUE\n" +
         "        model.finalTime = FINAL_TIME_VALUE\n" +
-        "        model.timeStep = TIME_STEP_VALUE\n" +
-        "        model.integrationType = EulerIntegration()\n" +
-        "        model.name = \"Generic SD Model\"   // name is optional\n" +
-        "        model.timeUnit = \"month\"          // unit is optional\n" +
-        "\n" +
+        "        model.timeStep = TIME_STEP_VALUE\n"
+
+val createAllSystemElements =" \n" +
         "\n" +
         "\n" +
         "        // 2. Create all system elements:\n" +
         "\n"
 
-var initialValues="        \n// 3. Initial values:\n" +
+val initialValues="        \n// 3. Initial values:\n" +
         "\n"
 
-var equations=        "        \n// 4. Equations:\n" +
+val equations=        "        \n// 4. Equations:\n" +
         "\n"
 
 var KSDtemplate = descriptionPackage + constantValuesBeginning + initializationOfModelCreateAllSystemElements

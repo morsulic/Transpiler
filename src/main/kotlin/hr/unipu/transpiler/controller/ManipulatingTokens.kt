@@ -238,6 +238,7 @@ fun breakListToSubList(list0: MutableList<String>, firstBreakPoint: String, last
  *                           margeNameRules->combines(checkFirstChar, checkLastChar, preparingNamesForTranspiling)
  *                           preparingNamesForTranspiling -> has function margeNamesRules (Section 3.2)
  *                           This functions will be important for base level conformance
+ *                           6.   MUST obey the namespace rules (Section 2.1 and 2.2.1)
  *                           12.  MUST obey the grammar for numbers, variables, and expressions
  *                           (Sections 3.2 and 3.3, and all subsections except Sections 3.3.5 and 3.3.6).
  */
