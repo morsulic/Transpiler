@@ -1,18 +1,17 @@
 package hr.unipu.transpiler.ModelTemplate
 
-var descriptionPackage="/**\n" +
-        " * SD model of Simple Compound Interest.\n" +
-        " *\n" +
-        " * @author [Siniša Sovilj](mailto:sinisa.sovilj@unipu.hr)\n" +
-        " */\n" +
+var packageAndImports="package hr.unipu.ksdtoolkit.models\n" +
         "\n" +
-        "package hr.unipu.transpiler.Kotlin_models"
+        "import hr.unipu.ksdtoolkit.entities.Model\n" +
+        "import hr.unipu.ksdtoolkit.entities.div\n" +
+        "import hr.unipu.ksdtoolkit.entities.times\n" +
+        "import hr.unipu.ksdtoolkit.integration.EulerIntegration\n"+
+        "import hr.unipu.ksdtoolkit.integration.RungeKuttaIntegration\n"
 
-var constantValuesBeginning="\n" +
-        "open class ModelGenericSD : Model() {\n" +
-        "\n" +
-        "    // Static properties:\n" +
-        "    companion object {\n"
+var descriptionPackage="/**\n"
+
+var constantValuesBeginning= "// Static properties:\n" +
+        "companion object {\n"
 var initializationOfModelCreateAllSystemElements=
         "\n\ninit {\n" +
         "\n" +
@@ -43,13 +42,13 @@ var initializationOfModelCreateAllSystemElements=
 val createAllSystemElements =" \n" +
         "\n" +
         "\n" +
-        "        // 2. Create all system elements:\n" +
+        "\t\t// 2. Create all system elements:\n" +
         "\n"
 
-val initialValues="        \n// 3. Initial values:\n" +
+val initialValues="\n\t\t// 3. Initial values:\n" +
         "\n"
 
-val equations=        "        \n// 4. Equations:\n" +
+val equations=        "\n\t\t// 4. Equations:\n" +
         "\n"
 
 var KSDtemplate = descriptionPackage + constantValuesBeginning + initializationOfModelCreateAllSystemElements

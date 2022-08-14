@@ -50,6 +50,7 @@ fun createListOfStrings(name: String): MutableList<String> {
  * Getting attributes from specific tag
  * Functions: breakString
  *            getWantedString -> contains (breakString)
+ *            getWantedStringXMILETag -> special version of getWantedString function
  */
 
 fun breakString(string0: String,breakPoint: Char): String {
@@ -77,6 +78,31 @@ fun getWantedString(string0: String, wantedString: String): String{
 
     for (i in string0.indices) {
         if ((string0[i] == ' ') or (string0[i] == '/') or (string0[i] == '>')) {
+            tokens.add(token)
+            token = ""
+        } else {
+            token += string0[i]
+        }
+    }
+
+    for((index, token) in tokens.withIndex()){
+        val result = token.contains(wantedString)
+        if(result){
+            val list1 = tokens.subList(index,index+1)
+            val wantedSD = breakString(list1[0],'"')
+            return wantedSD
+        }
+    }
+    return ""
+}
+
+//Special function for getting data of URL xmlns in XMILE tag data
+fun getWantedStringXMILETag(string0: String, wantedString: String):String{
+    var token=""
+    val tokens = mutableListOf<String>()
+
+    for (i in string0.indices) {
+        if ((string0[i] == ' ')  or (string0[i] == '>')) {
             tokens.add(token)
             token = ""
         } else {
@@ -314,6 +340,16 @@ fun preparingNamesForTranspiling(list0: MutableList<String>): MutableList<String
      }
 
      return list0
+}
+
+/**
+ * Function for getting model names to uppercase
+ */
+fun convertListOfStringToFirstCharUppercase(list: List<String>): List<String>{
+    for(i in list.indices){
+        list[i].lowercase().replaceFirstChar { it.uppercase()}
+    }
+    return list
 }
 
 

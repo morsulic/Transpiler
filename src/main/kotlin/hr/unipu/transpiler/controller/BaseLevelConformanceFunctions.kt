@@ -12,8 +12,8 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
     val list = getDataInTag(tokens, "<xmile")
     //println(list)
     var versionXMILE = getWantedString(list,  "version")
-    var xmlns = getWantedString(list,  "xmlns")
-    var xmlns1 = getWantedString(list,  "xmlns:isee")
+    var xmlns = getWantedStringXMILETag(list,  "xmlns")
+    var xmlns1 = getWantedStringXMILETag(list,  "xmlns:isee")
 
     /**
      * Returning the values in XMILE tag with data saved in map structure if every condition for XMILE tag is satisfied
@@ -26,7 +26,7 @@ fun gettingXMILETagData(tokens: MutableList<String>): Map<String, Any> {
     }
     else{
 
-        val XMILETagDataMap =mapOf("Version" to versionXMILE, "xmlns" to xmlns, "xmlnsISEE" to xmlns1)
+        val XMILETagDataMap =mapOf("Version" to versionXMILE, "xmlns1" to xmlns, "xmlnsISEE" to xmlns1)
         return XMILETagDataMap
     }
     /**
@@ -113,16 +113,17 @@ fun helpTestUnitDes(tMap: MutableMap<String,Any>,modelName: String, name: String
         val valueDes = description[1]
         tMap +=
             mapOf(
-                "$modelName $name 2. Entities description" to "$name.description = \"$valueDes" +
-                        "Variable non negative status is $nonNegative" + ".\" "
+                "$modelName $name 2. Entities description" to "$name.description = \"$valueDes\"" +
+                        "\t//Variable non negative status is $nonNegative"
             )
-    }else{
+    }
+   /**else{
         tMap +=
             mapOf(
                 "$modelName $name 2. Entities description" to "$name.description = \"" +
                         "Variable non negative status is $nonNegative" + ".\" "
             )
-    }
+    }*/
 
 }
 
@@ -166,6 +167,7 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
                 tModel += mapOf("$modelName $stockName 4. Variables constants" to "$stockNameUp = model.equation($stockNameUp" + "_VALUE)")
                 tModel += mapOf("$modelName $stockName 3. Stocks" to "$stockName.initialValue={ $stockNameUp }")
                 tModel += mapOf("$modelName $stockName 4. Stocks" to "$stockName.equation={$inflows$outflows}")
+                helpTestUnitDes(tModel, modelName, stockNameUp, units, description, nonNegative)
             } catch (e: Exception) {
                 val stockNameLow = stockName.lowercase()
                 val value1 = valueEquationToken[1]
@@ -173,6 +175,7 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
                 tModel += mapOf("$modelName $stockName 4. Converters" to "$stockNameLow.equation={ $value1 }")
                 tModel += mapOf("$modelName $stockName 3. Stocks" to "$stockName.initialValue={ $stockNameLow }")
                 tModel += mapOf("$modelName $stockName 4. Stocks" to "$stockName.equation={$inflows$outflows}")
+                helpTestUnitDes(tModel, modelName, stockNameLow, units, description, nonNegative)
             }
         } else {
             tModel +=
@@ -181,7 +184,6 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
                 )
         }
 
-        helpTestUnitDes(tModel, modelName, stockName, units, description, nonNegative)
     }else{
         error("Error: Stock name must not be empty!!!")
     }
@@ -251,14 +253,14 @@ fun gettingAux(token: MutableList<String>, tModel: MutableMap<String, Any>, mode
                 tModel += mapOf("$modelName $auxName companion object values" to "const val $auxNameUp" + "_VALUE = $value")
                 tModel += mapOf("$modelName $auxName 2. Variables constants" to "val $auxNameUp = model.constant($auxNameUp" + "_KEY)")
                 tModel += mapOf("$modelName $auxName 4. Variables constants" to "$auxNameUp = model.equation($auxNameUp" + "_VALUE)")
+                helpTestUnitDes(tModel, modelName, auxNameUp, units, description, nonNegative)
             } catch (e: Exception) {
                 val value1 = valueEquationToken[1]
                 tModel += mapOf("$modelName $auxName 2. Variables converters" to "val $auxName = model.converter(\"$auxName\")")
                 tModel += mapOf("$modelName $auxName 4. Variables" to "$auxName.equation(\"$value1\")")
-
+                helpTestUnitDes(tModel, modelName, auxName, units, description, nonNegative)
             }
         }
-        helpTestUnitDes(tModel, modelName, auxName, units, description, nonNegative)
 
         val gf = separateSameTags(token, "<gf", "</gf>")
         if (gf.isNotEmpty()) {
@@ -334,30 +336,36 @@ fun gettingGroup(token: MutableList<String>, tModel: MutableMap<String,Any>, gro
 
 }
 
-fun gettingModules(tokens: MutableList<String>, tModel: MutableMap<String,Any>){
+fun gettingModules(tokens: MutableList<String>, modelName: String, tModel: MutableMap<String,Any>){
 
     var connectionTo=""
     var connectionFrom=""
-    var connectionToFrom= mutableListOf<Map<String,String>>()
+    var modelName1= modelName//.lowercase().replaceFirstChar { it.uppercase()}
     val moduleNameToken = getDataInTag(tokens, "<module")
-    val moduleName = getWantedString(moduleNameToken, "name")
+    var moduleName = getWantedString(moduleNameToken, "name")
     val description = breakListToSubList(tokens, "<doc", "</doc>")
     val moduleConnectionList= getDataInTags(tokens,"<connect")
 
+    moduleName = moduleName//.lowercase().replaceFirstChar { it.uppercase()}
+    tModel += mapOf("Module name $modelName1 $moduleName" to moduleName)
+    tModel += mapOf("Module imports $modelName1 $moduleName" to "import hr.unipu.ksdtoolkit.modules.Module$moduleName")
+    tModel += mapOf("2. Modules $modelName1 $moduleName" to "\n\t\t\t\t\t\tval $moduleName = model.createModule(\n" +
+            "\t\t\t\t\t\t\t\"$moduleName\",\n" +
+            "\t\t\t\t\t\t\t\"hr.unipu.ksdtoolkit.modules.Module$moduleName\"\n" +
+            "\t\t\t\t\t\t) as Module$moduleName")
 
-    tModel += mapOf("moduleName" to moduleName)
     if (description.isNotEmpty()){
         val value=description[1]
-        tModel += mapOf("stock.description" to "$moduleName.description =  \"$value\" ")
+        tModel += mapOf("$modelName1 $moduleName 2. Entities description" to "$moduleName.description =  \"$value\" ")
     }
 
     for(index in moduleConnectionList.indices){
         connectionTo = getWantedString(moduleConnectionList[index],  "to")
         connectionFrom = getWantedString(moduleConnectionList[index], "from")
-        connectionToFrom.add( mapOf(connectionTo to connectionFrom))
     }
 
-    tModel += mapOf("connectionToFrom" to "$connectionToFrom")
+    tModel += mapOf("connection to $modelName1 $moduleName" to "$connectionTo")
+    tModel += mapOf("connection from $modelName1 $moduleName" to "$connectionFrom")
 }
 
 fun gettingModelSimSpecs(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>,simSpecMap: MutableMap<String, Any>):
@@ -374,11 +382,11 @@ fun gettingModelSimSpecs(tokens: MutableList<MutableList<String>>,modelNameList:
             mapSimSpecs += "Model name $name" to "model.name = \"$name\"\t// name is optional"
             mapSimSpecs += "Method $name" to ""+simSpecMap.getValue("Method non")
             mapSimSpecs += "Time unit $name" to ""+simSpecMap.getValue("Time unit non")
-            mapSimSpecs += "companion object simSpec Initial time $name" to "const val INITIAL_TIME_VALUE = "+
+            mapSimSpecs += "companion object simSpec Initial time $name" to ""+
                     simSpecMap.getValue("companion object simSpec Initial time non")
-            mapSimSpecs += "companion object simSpec Final time $name" to "const val FINAL_TIME_VALUE = "+
+            mapSimSpecs += "companion object simSpec Final time $name" to ""+
                     simSpecMap.getValue("companion object simSpec Final time non")
-            mapSimSpecs += "companion object simSpec Time step $name" to "const val TIME_STEP_VALUE = "+
+            mapSimSpecs += "companion object simSpec Time step $name" to ""+
                     simSpecMap.getValue("companion object simSpec Time step non")
         }
     }
@@ -435,7 +443,7 @@ fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameLis
     for(i in tokens.indices){
         val moduleList = separateSameTags(tokens[i], "<module", "</module>")
         for((index) in moduleList.withIndex()){
-            gettingModules(moduleList[index],tModel)
+            gettingModules(moduleList[index],modelNameList[i],tModel)
         }
     }
 
@@ -589,7 +597,7 @@ fun gettingSimSpecsTagData(tokens: MutableList<String>,modelName: String = "non"
     return mutableMapOf("SimSpecs empty $modelName" to modelName)
     /**
      * Working ++ (tested and confirmed rules with Test12, Test13 and Test14)
-     * But resolving inconsistencies between multiple sim_specs needs to be created.
+     * Created resolving inconsistencies between multiple sim_specs ++
      */
 }
 
