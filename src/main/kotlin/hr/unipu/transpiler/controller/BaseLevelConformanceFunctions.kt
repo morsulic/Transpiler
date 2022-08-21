@@ -117,19 +117,61 @@ fun helpTestUnitDes(tMap: MutableMap<String,Any>,modelName: String, name: String
                         "\t//Variable non negative status is $nonNegative"
             )
     }
-   /**else{
-        tMap +=
-            mapOf(
-                "$modelName $name 2. Entities description" to "$name.description = \"" +
-                        "Variable non negative status is $nonNegative" + ".\" "
-            )
+    /**else{
+    tMap +=
+    mapOf(
+    "$modelName $name 2. Entities description" to "$name.description = \"" +
+    "Variable non negative status is $nonNegative" + ".\" "
+    )
     }*/
 
 }
 
+/**fun checkEquationConstants(tModel: MutableMap<String,Any>, constantsList: MutableList<String>): MutableList<String>{
+    var constantsList=constantsList
+    if(tModel.contains("constants")) {
+        val constantsStr = tModel.getValue("constants")
+        if(constantsStr is String) {
+            constantsList = constantsStr.split(",").toMutableList()
+        }
+    } else {
+        constantsList = mutableListOf<String>()
+    }
+    return constantsList
+
+}*/
+
+fun checkEquation(tModel: MutableMap<String,Any>, list: MutableList<String>,nameKey: String): MutableList<String>{
+
+    var list=list
+    if(tModel.contains("$nameKey")) {
+        val str = tModel.getValue("$nameKey")
+        if(str is String) {
+            list = str.split(",").toMutableList()
+        }
+    } else {
+        list = mutableListOf<String>()
+    }
+    return list
+}
+
+fun checkBuiltInFunctions(tModel: MutableMap<String,Any>,list: MutableList<String>,nameKey:String): MutableList<String>{
+
+    var list=list
+    var listBuiltInFunctions = listOf<String>("STARTTIME","STOPTIME","DT","TIME")
+
+
+    for(i in listBuiltInFunctions){
+        if (tModel.contains("$nameKey")){
+
+            }
+    }
+    return list
+
+}
 fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, modelName: String,stockNameToken:String){
     val stockName = getWantedString(stockNameToken,  "name").lowercase().replaceFirstChar { it.uppercase()}
-
+    val stockName1 = getWantedString(stockNameToken, "name")
     if(stockName.isNotEmpty()) {
 
         val valueEquationToken = breakListToSubList(token, "<eqn", "</eqn>")
@@ -145,22 +187,63 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
         var value = 0.0
 
         for (i in inflowsList.indices) {
+            var x = inflowsList[i][1]
+            var constantsList = mutableListOf<String>()
+            constantsList = checkEquation(tModel,constantsList,"constants")
+            if(constantsList.contains(x.lowercase())) {
+                x = x.uppercase()
+            }
             inflows = if (i == 0) {
-                inflowsList[i][1]
+                x
             } else {
-                inflows + " + " + inflowsList[i][1]
+                inflows + " + (" + x
             }
 
+
         }
-        for (j in outflowsList.indices) {
-            outflows = outflows + " - " + outflowsList[j][1]
+        if(inflowsList.size>0) {
+            inflows += ")".repeat(inflowsList.size - 1)
         }
+        for (i in outflowsList.indices) {
+            var x = outflowsList[i][1]
+
+            var constantsList = mutableListOf<String>()
+            constantsList = checkEquation(tModel,constantsList,"constants")
+
+            if(constantsList.contains(x.lowercase())) {
+                x = x.uppercase()
+            }
+            outflows =if (i == 0) {
+                " - ("+x
+            } else {
+                outflows+  " + (" + x
+            }
+        }
+
+        outflows+=")".repeat(outflowsList.size)
 
         tModel +=mapOf("$modelName $stockName 2. Stocks" to "val $stockName = model.stock(\"$stockName\")")
         if (valueEquationToken.isNotEmpty()) {
             try {
                 value = valueEquationToken[1].toDouble()
                 val stockNameUp = stockName.uppercase()
+
+                var constantsList = mutableListOf<String>()
+                constantsList = checkEquation(tModel,constantsList,"constants")
+                constantsList.add(stockName.lowercase())
+
+                var stockList = mutableListOf<String>()
+                stockList = checkEquation(tModel,stockList,"stocks")
+                stockList.add(stockName1)
+
+                var simSpecsList = mutableListOf<String>()
+                simSpecsList= checkEquation(tModel,simSpecsList,"simSpecsEq")
+
+
+                tModel.put("constants", constantsList.joinToString(","))
+                tModel.put("stocks", stockList.joinToString (","))
+                tModel.put("simSpecsEq", simSpecsList.joinToString (","))
+
                 tModel += mapOf("$modelName $stockName companion object keys" to "const val $stockNameUp" + "_KEY = \"$stockNameUp\"")
                 tModel += mapOf("$modelName $stockName companion object values" to "const val $stockNameUp" + "_VALUE = $value")
                 tModel += mapOf("$modelName $stockName 2. Variables constants" to "val $stockNameUp = model.constant($stockNameUp" + "_KEY)")
@@ -171,6 +254,12 @@ fun gettingStocks(token: MutableList<String>,tModel: MutableMap<String,Any>, mod
             } catch (e: Exception) {
                 val stockNameLow = stockName.lowercase()
                 val value1 = valueEquationToken[1]
+                var stockList = mutableListOf<String>()
+                stockList = checkEquation(tModel,stockList,"stocks")
+                stockList.add(stockName1)
+
+                tModel.put("stocks", stockList.joinToString (","))
+
                 tModel += mapOf("$modelName $stockName 2. Variables converters" to "val $stockNameLow = model.converter(\"$stockNameLow\")")
                 tModel += mapOf("$modelName $stockName 4. Converters" to "$stockNameLow.equation={ $value1 }")
                 tModel += mapOf("$modelName $stockName 3. Stocks" to "$stockName.initialValue={ $stockNameLow }")
@@ -206,8 +295,15 @@ fun gettingFlows(token: MutableList<String>,tModel: MutableMap<String,Any>, mode
 
         tModel += mapOf("$modelName $flowName 2. Flows" to "val $flowName = model.flow(\"$flowName\")")
         if (valueEquationToken.isNotEmpty()) {
-                valueStr=valueEquationToken[1]
-                tModel += mapOf("$modelName $flowName 4. Flows" to "$flowName.equation={ $valueStr }")
+
+            valueStr=valueEquationToken[1]
+            var constantsList = mutableListOf<String>()
+            constantsList= checkEquation(tModel,constantsList,"constants")
+            for(constant in constantsList) {
+                valueStr = valueStr.replace(constant, constant.uppercase())
+            }
+
+            tModel += mapOf("$modelName $flowName 4. Flows" to "$flowName.equation={ $valueStr }")
 
         } else {
             tModel +=
@@ -249,14 +345,24 @@ fun gettingAux(token: MutableList<String>, tModel: MutableMap<String, Any>, mode
             try {
                 value = valueEquationToken[1].toDouble()
                 val auxNameUp = auxName.uppercase()
+                //tModel += mapOf("upercase" to stockName)
+                var constantsList = mutableListOf<String>()
+                constantsList= checkEquation(tModel,constantsList,"constants")
+                constantsList.add(auxName.lowercase())
+                tModel.put("constants", constantsList.joinToString(","))
                 tModel += mapOf("$modelName $auxName companion object keys" to "const val $auxNameUp" + "_KEY = \"$auxNameUp\"")
                 tModel += mapOf("$modelName $auxName companion object values" to "const val $auxNameUp" + "_VALUE = $value")
                 tModel += mapOf("$modelName $auxName 2. Variables constants" to "val $auxNameUp = model.constant($auxNameUp" + "_KEY)")
                 tModel += mapOf("$modelName $auxName 4. Variables constants" to "$auxNameUp = model.equation($auxNameUp" + "_VALUE)")
                 helpTestUnitDes(tModel, modelName, auxNameUp, units, description, nonNegative)
             } catch (e: Exception) {
-                val value1 = valueEquationToken[1]
+                var value1 = valueEquationToken[1]
                 tModel += mapOf("$modelName $auxName 2. Variables converters" to "val $auxName = model.converter(\"$auxName\")")
+                var constantsList = mutableListOf<String>()
+                constantsList= checkEquation(tModel,constantsList,"constants")
+                for(constant in constantsList) {
+                    value1 = value1.replace(constant, constant.uppercase())
+                }
                 tModel += mapOf("$modelName $auxName 4. Variables" to "$auxName.equation(\"$value1\")")
                 helpTestUnitDes(tModel, modelName, auxName, units, description, nonNegative)
             }
@@ -340,23 +446,22 @@ fun gettingModules(tokens: MutableList<String>, modelName: String, tModel: Mutab
 
     var connectionTo=""
     var connectionFrom=""
-    var modelName1= modelName//.lowercase().replaceFirstChar { it.uppercase()}
     val moduleNameToken = getDataInTag(tokens, "<module")
     var moduleName = getWantedString(moduleNameToken, "name")
     val description = breakListToSubList(tokens, "<doc", "</doc>")
     val moduleConnectionList= getDataInTags(tokens,"<connect")
 
-    moduleName = moduleName//.lowercase().replaceFirstChar { it.uppercase()}
-    tModel += mapOf("Module name $modelName1 $moduleName" to moduleName)
-    tModel += mapOf("Module imports $modelName1 $moduleName" to "import hr.unipu.ksdtoolkit.modules.Module$moduleName")
-    tModel += mapOf("2. Modules $modelName1 $moduleName" to "\n\t\t\t\t\t\tval $moduleName = model.createModule(\n" +
+    moduleName = moduleName.lowercase().replaceFirstChar { it.uppercase()}
+    tModel += mapOf("Module name $modelName $moduleName" to moduleName)
+    tModel += mapOf("Module imports $modelName $moduleName" to "import hr.unipu.ksdtoolkit.modules.Module$moduleName")
+    tModel += mapOf("2. Modules $modelName $moduleName" to "\n\t\t\t\t\t\tval $moduleName = model.createModule(\n" +
             "\t\t\t\t\t\t\t\"$moduleName\",\n" +
             "\t\t\t\t\t\t\t\"hr.unipu.ksdtoolkit.modules.Module$moduleName\"\n" +
             "\t\t\t\t\t\t) as Module$moduleName")
 
     if (description.isNotEmpty()){
         val value=description[1]
-        tModel += mapOf("$modelName1 $moduleName 2. Entities description" to "$moduleName.description =  \"$value\" ")
+        tModel += mapOf("$modelName $moduleName 2. Entities description" to "$moduleName.description =  \"$value\" ")
     }
 
     for(index in moduleConnectionList.indices){
@@ -364,8 +469,8 @@ fun gettingModules(tokens: MutableList<String>, modelName: String, tModel: Mutab
         connectionFrom = getWantedString(moduleConnectionList[index], "from")
     }
 
-    tModel += mapOf("connection to $modelName1 $moduleName" to "$connectionTo")
-    tModel += mapOf("connection from $modelName1 $moduleName" to "$connectionFrom")
+    tModel += mapOf("connection to $modelName $moduleName" to "$connectionTo")
+    tModel += mapOf("connection from $modelName $moduleName" to "$connectionFrom")
 }
 
 fun gettingModelSimSpecs(tokens: MutableList<MutableList<String>>,modelNameList: MutableList<String>,simSpecMap: MutableMap<String, Any>):
@@ -411,7 +516,6 @@ fun gettingModelsVariables(tokens: MutableList<MutableList<String>>,modelNameLis
         val flowNameToken = getDataInTags(tokens[i], "<flow")
         for((index)in flowList.withIndex()){
             gettingFlows(flowList[index],tModel,modelNameList[i],flowNameToken[index])
-
         }
     }
 

@@ -342,6 +342,11 @@ fun preparingNamesForTranspiling(list0: MutableList<String>): MutableList<String
      return list0
 }
 
+fun preparingEquationsForTranspiling(equation: String, listOfNames: MutableList<String>):String{
+
+    return equation
+}
+
 /**
  * Function for getting model names to uppercase
  */

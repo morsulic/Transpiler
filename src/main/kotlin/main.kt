@@ -5,60 +5,61 @@ import hr.unipu.transpiler.controller.*
 
 fun main() {
     //ReadFromFile("hares_and_foxes")
-    //Lexer("hares_and_foxes")
-    Lexer("Vacation")
+    //transpiler("hares_and_foxes")
+    transpiler("Vacation")
+    //transpiler("Comments_test")
 
     /**
      * Testing functionality of removing view tag
      * Tests 1 to 3
      */
 
-    //Lexer("Test1RemoveView")// Main test for remove view +
-    //Lexer("Test2RemoveViewOneMore") //Testing removing one more view block +
-    //Lexer("Test3RemoveViewErrorTags") //Testing remove view with one view block without end tag
+    //transpiler("Test1RemoveView")// Main test for remove view +
+    //transpiler("Test2RemoveViewOneMore") //Testing removing one more view block +
+    //transpiler("Test3RemoveViewErrorTags") //Testing remove view with one view block without end tag
 
     /**
      * Testing functionality of Base-Level Conformance 1. MUST include an <xmile> tag that contains both the version of
      * XMILE used and the XMILE XML namespace (Section 2)
      */
-    //Lexer("Test6WithOutXMILETag") //Testing  XMILE tag missing
-    //Lexer("Test7WithOutXMILETag") //Testing  XMILE tag version missing
-    //Lexer("Test8WithOutXMILETag") //Testing  XMILE tag namespace missing
+    //transpiler("Test6WithOutXMILETag") //Testing  XMILE tag missing
+    //transpiler("Test7WithOutXMILETag") //Testing  XMILE tag version missing
+    //transpiler("Test8WithOutXMILETag") //Testing  XMILE tag namespace missing
 
     /**
      * Testing functionality of Base-Level Conformance  2. MUST include a <header> tag (Section 2) with sub-tags
      * <vendor> and <product> with its version number (Section 2.2)
      */
-    //Lexer("Test9WithOutHeaderTag") //Testing header tag missing
-    //Lexer("Test10WithOutHeaderTag") //Testing header tag name missing
-    //Lexer("Test11WithOutHeaderTag") //Testing header tag product version missing
-    //Lexer("Test16WithOutHeaderTag") //Testing header tag product version value missing
+    //transpiler("Test9WithOutHeaderTag") //Testing header tag missing
+    //transpiler("Test10WithOutHeaderTag") //Testing header tag name missing
+    //transpiler("Test11WithOutHeaderTag") //Testing header tag product version missing
+    //transpiler("Test16WithOutHeaderTag") //Testing header tag product version value missing
     /**
      * Testing functionality of Base-Level Conformance 3. MUST include at least one <model> tag (Section 2) and
      * 4. MUST name models beyond the root model (Section 4)
      */
-    //Lexer("Test4WithOutModel") //Testing that at least one model tag must exist in XMILE format
-    //Lexer("Test17WithOutSubModelName") //Testing that all submodels are properly named
+    //transpiler("Test4WithOutModel") //Testing that at least one model tag must exist in XMILE format
+    //transpiler("Test17WithOutSubModelName") //Testing that all submodels are properly named
 
     /**
      * Testing functionality of Base-Level Conformance 7. MUST include, when using optional features, the <options>
      * tag with those features specified (Section 2.2.1)
      */
-    //Lexer("Test15OptionsUsesSubModels")
+    //transpiler("Test15OptionsUsesSubModels")
 
 
     /**
      * Testing functionality of Base-Level Conformance  8. MUST contain at least one set of simulation
      * specifications (Section 2.3)
      */
-    //Lexer("Test12WithOutSimSpecs") //Testing that at least one SimSpecss tag must exist in XMILE format
-    //Lexer("Test13WithOutSimSpecs") //Testing sim_specs start of interval tag value missing
-    //Lexer("Test14WithOutSimSpecs") //Testing sim_specs dt tag value missing used default value time step = 1.0
+    //transpiler("Test12WithOutSimSpecs") //Testing that at least one SimSpecss tag must exist in XMILE format
+    //transpiler("Test13WithOutSimSpecs") //Testing sim_specs start of interval tag value missing
+    //transpiler("Test14WithOutSimSpecs") //Testing sim_specs dt tag value missing used default value time step = 1.0
 
     /**
      * Testing functionality of Base-Level Conformance 9. MUST support model behaviors (Section 2.6)
      */
-    //Lexer("Test5BehaviorTag") //Testing getting data from behaviour tag
+    //transpiler("Test5BehaviorTag") //Testing getting data from behaviour tag
 
     /**
      * Creating test file
@@ -72,7 +73,7 @@ fun main() {
  */
 
 
-fun Lexer(name: String){
+fun transpiler(name: String){
 
 
     /**
@@ -114,10 +115,10 @@ fun Lexer(name: String){
     val simSpecsMap = gettingSimSpecsTagData(tokens)
 
     //4. Getting data from model of hr.unipu.transpiler.XMILE format
-    val model = gettingModelTagData(tokens,modelName, simSpecsMap)
-    model+=XMILETopMap
-    model+=headerMap
-    transpiledModelsData(model)
+    val tModels = gettingModelTagData(tokens,modelName, simSpecsMap)
+    tModels+=XMILETopMap
+    tModels+=headerMap
+    transpiledModelsData(tModels)
     println("\n")
 
     //Getting data from options of hr.unipu.transpiler.XMILE format

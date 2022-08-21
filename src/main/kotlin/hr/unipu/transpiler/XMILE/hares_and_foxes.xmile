@@ -19,11 +19,11 @@
     <model_units/>
     <model>
         <variables>
-            <module name="hares">
+            <module name="Hares">
                 <connect to="area" from=".area"/>
                 <connect to="lynxes" from="lynxes.lynxes"/>
             </module>
-            <module name="lynxes">
+            <module name="Lynxes">
                 <connect to="hare_density" from="hares.hare_density"/>
                 <connect to="size_of_one_time_lynx_harvest" from=".size_of_one_time_lynx_harvest"/>
             </module>
@@ -85,7 +85,7 @@
             <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
         </views>
     </model>
-    <model name="hares">
+    <model name="Hares">
         <sim_specs method="Euler" time_units="time" isee:pause_after_rates="false" isee:instantaneous_flows="false">
             <start>0</start>
             <stop>18</stop>
@@ -204,7 +204,7 @@
             <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
         </views>
     </model>
-    <model name="lynxes">
+    <model name="Lynxes">
         <variables>
             <stock name="lynxes" access="output">
                 <eqn>1250 </eqn>
