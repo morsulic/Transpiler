@@ -7,6 +7,9 @@
         <vendor>isee systems, inc.</vendor>
         <product version="1.1b2" isee:saved_by_v1="true" isee:compatibility="1.1" lang="en">Stella Professional</product>
     </header>
+    <options>
+                 <uses_submodels/>
+    </options>
     <sim_specs method="Euler" time_units="time" isee:pause_after_rates="false" isee:instantaneous_flows="false">
         <start>0</start>
         <stop>12</stop>

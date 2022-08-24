@@ -6,10 +6,10 @@
         <uuid>5c1276e0-9bab-4489-b31c-a1e5dfc3a410</uuid>
         <vendor>isee systems, inc.</vendor>
         <product version="1.1b2" isee:saved_by_v1="true" isee:compatibility="1.1" lang="en">Stella Professional</product>
+        <options>
+             <uses_submodels/>
+        </options>
     </header>
-    <options>
-                 <uses_submodels/>
-    </options>
     <sim_specs method="Euler" time_units="time" isee:pause_after_rates="false" isee:instantaneous_flows="false">
         <start>0</start>
         <stop>12</stop>
@@ -19,11 +19,11 @@
     <model_units/>
     <model>
         <variables>
-            <module name="hares">
+            <module name="Hares">
                 <connect to="area" from=".area"/>
                 <connect to="lynxes" from="lynxes.lynxes"/>
             </module>
-            <module name="lynxes">
+            <module name="Lynxes">
                 <connect to="hare_density" from="hares.hare_density"/>
                 <connect to="size_of_one_time_lynx_harvest" from=".size_of_one_time_lynx_harvest"/>
             </module>
@@ -85,7 +85,12 @@
             <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
         </views>
     </model>
-    <model name="hares">
+    <model name="Hares">
+        <sim_specs method="Euler" time_units="time" isee:pause_after_rates="false" isee:instantaneous_flows="false">
+            <start>0</start>
+            <stop>18</stop>
+            <dt>0.6</dt>
+        </sim_specs>
         <variables>
             <stock name="hares">
                 <eqn>50000 </eqn>
@@ -105,16 +110,13 @@
                 <eqn>1.25 </eqn>
             </aux>
             <aux name="area" access="input">
-                <eqn>365</eqn>
+                <eqn>{Enter equation for use when not hooked up to other models}</eqn>
             </aux>
             <aux name="hare_density" access="output">
                 <eqn>hares / area </eqn>
             </aux>
             <stock name="lynxes" access="input">
-                <eqn>50000 </eqn>
-                <inflow>births</inflow>
-                <outflow>deaths</outflow>
-                <non_negative></non_negative>
+                <eqn>{Enter equation for use when not hooked up to other models}</eqn>
                 <non_negative></non_negative>
             </stock>
             <aux name="hares_killed\nper_lynx">
@@ -202,7 +204,7 @@
             <view show_pages="false" page_width="788" page_height="528" isee:simulation_delay="0.069033499999999998" type="interface"/>
         </views>
     </model>
-    <model name="lynxes">
+    <model name="Lynxes">
         <variables>
             <stock name="lynxes" access="output">
                 <eqn>1250 </eqn>
@@ -220,7 +222,7 @@
                 <non_negative></non_negative>
             </flow>
             <aux name="hare_density" access="input">
-                <eqn>2000</eqn>
+                <eqn>{Enter equation for use when not hooked up to other models}</eqn>
             </aux>
             <aux name="birth_fraction">
                 <eqn>.25 </eqn>

@@ -1,6 +1,6 @@
+package hr.unipu.transpiler.controller
 
-
-/***
+/**
  *  Functions for removing tag blocks from list of strings in our case view tag:
  *                                                                   removeSlice
  *                                                                   removeWantedTagBlock -> contains(removeSlice)

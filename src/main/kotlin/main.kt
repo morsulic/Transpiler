@@ -1,9 +1,16 @@
 
-import hr.unipu.transpiler.ModelTemplate.getKSDTemplate
 import hr.unipu.transpiler.controller.*
+import hr.unipu.transpiler.globalVariables.transpilerDataMap
+import hr.unipu.transpiler.globalVariables.transpilerDataMapKsdToolkitSet
+import hr.unipu.transpiler.globalVariables.transpilerString
 
 
 fun main() {
+
+        /**val source = "main.xml"
+            print(loadXmlWithIncludes(source))
+        return*/
+
     //ReadFromFile("hares_and_foxes")
     //transpiler("hares_and_foxes")
     transpiler("Vacation")
@@ -52,10 +59,10 @@ fun main() {
      * Testing functionality of Base-Level Conformance  8. MUST contain at least one set of simulation
      * specifications (Section 2.3)
      */
-    //transpiler("Test12WithOutSimSpecs") //Testing that at least one SimSpecss tag must exist in XMILE format
+    //transpiler("Test12WithOutSimSpecs") //Testing that at least one sim_specs tag must exist in XMILE format
     //transpiler("Test13WithOutSimSpecs") //Testing sim_specs start of interval tag value missing
     //transpiler("Test14WithOutSimSpecs") //Testing sim_specs dt tag value missing used default value time step = 1.0
-
+    //transpiler("Test18WithOutSimSpecs") //Testing is additional sim_specs saved in specialized model
     /**
      * Testing functionality of Base-Level Conformance 9. MUST support model behaviors (Section 2.6)
      */
@@ -64,7 +71,7 @@ fun main() {
     /**
      * Creating test file
      */
-    val KSDmodel= getKSDTemplate() //uncomment the import
+   // val KSDmodel= getKSDTemplate() //uncomment the import
     //CreateFile("proba1", KSDmodel) //uncomment the import
 }
 
@@ -84,7 +91,7 @@ fun transpiler(name: String){
 
     //Creating list of strings (token blocks) from hr.unipu.transpiler.XMILE format
     var tokens = createListOfStrings(name)
-
+    //println(tokens)
     //Preparing names for transpiling
     tokens = preparingNamesForTranspiling(tokens)
 
@@ -105,31 +112,32 @@ fun transpiler(name: String){
 
     println(" ")
     //1. Getting data from XMILE tag of hr.unipu.transpiler.XMILE format
-    val XMILETopMap =gettingXMILETagData(tokens)
-
+    gettingXMILETagData(tokens)
+    //println(tokens)
     //2. Getting data from header of hr.unipu.transpiler.XMILE format
-    val headerMap = gettingHeaderTagData(tokens)
-    var modelName = headerMap.getValue("Model name").toString()
+    gettingHeaderTagData(tokens)
+    var modelName = transpilerDataMap.getValue("Model name").toString()
 
     //3. Getting data from sim_specs of hr.unipu.transpiler.XMILE format
-    val simSpecsMap = gettingSimSpecsTagData(tokens)
+    gettingSimSpecsTagData(tokens)
 
     //4. Getting data from model of hr.unipu.transpiler.XMILE format
-    val tModels = gettingModelTagData(tokens,modelName, simSpecsMap)
-    tModels+=XMILETopMap
-    tModels+=headerMap
-    transpiledModelsData(tModels)
+    gettingModelTagData(tokens,modelName)
     println("\n")
 
     //Getting data from options of hr.unipu.transpiler.XMILE format
-    val options = gettingOptionsTagData(tokens)
+    gettingOptionsTagData(tokens)
 
 
     //Getting data from behaviour of hr.unipu.transpiler.XMILE format
     val behavior = gettingBehaviorTagData(tokens)
     //println(behavior)
-
-
+    //transpiledModelsData(tModels)
+    //printingDataInMapOfStrings(transpilerDataMap)
+    settingDataForTranspiling()
+    //printingDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
+    //transpilerStringCreator()
+    //printingTransStringData(transpilerString)
 
 }
 
