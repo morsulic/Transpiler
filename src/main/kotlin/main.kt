@@ -115,7 +115,7 @@ fun transpiler(name: String){
     gettingXMILETagData(tokens)
     //println(tokens)
     //2. Getting data from header of hr.unipu.transpiler.XMILE format
-    gettingHeaderTagData(tokens)
+    //gettingHeaderTagData(tokens)
     var modelName = transpilerDataMap.getValue("Model name").toString()
 
     //3. Getting data from sim_specs of hr.unipu.transpiler.XMILE format
@@ -133,11 +133,11 @@ fun transpiler(name: String){
     val behavior = gettingBehaviorTagData(tokens)
     //println(behavior)
     //transpiledModelsData(tModels)
-    //printingDataInMapOfStrings(transpilerDataMap)
+    printingDataInMapOfStrings(transpilerDataMap)
     settingDataForTranspiling()
-    //printingDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
-    //transpilerStringCreator()
-    //printingTransStringData(transpilerString)
+    printingDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
+    transpilerStringCreator()
+    printingTransStringData(transpilerString)
 
 }
 

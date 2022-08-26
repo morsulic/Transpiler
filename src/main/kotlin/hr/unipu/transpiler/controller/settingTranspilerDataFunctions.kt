@@ -18,11 +18,11 @@ fun settingTagsOfWantedData(modelName: String, tagType: String, tagMapName: Stri
     for (tagName in tagNameList) {
         settingWantedData(modelName, tagType, tagName)
     }
+
 }
 
 fun settingWantedData(modelName: String, tagType: String, tagName: String) {
-    val helpMap =
-        transpilerDataMap.filterKeys { it.contains(modelName) && it.contains(tagType) && it.contains(tagName) }
+    val helpMap = transpilerDataMap.filterKeys { it.contains(modelName) && it.contains(tagType) && it.contains(tagName)}
     val name = helpMap.getValue("$modelName $tagType" + "Name: $tagName")
 
     var equationValueConstant: String? = null

@@ -9,7 +9,7 @@ import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
 
-fun parseXml(source: String): Document {
+/**fun parseXml(source: String): Document {
     val classloader = Thread.currentThread().contextClassLoader
     val xmlFile = classloader.getResource(source)
 
@@ -17,7 +17,7 @@ fun parseXml(source: String): Document {
     val dBuilder = dbFactory.newDocumentBuilder()
     val xmlInput = InputSource(StringReader(xmlFile.readText()))
     return dBuilder.parse(xmlInput)
-}
+}*/
 
 fun addNameToRootModel(root: Element) {
     val header = root.getElementsByTagName("header").item(0)

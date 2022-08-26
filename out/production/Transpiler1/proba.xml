@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xmile>
+    <header>
+        <name>Foxes</name>
+    </header>
+    <model>
+        <stock name="Number_of_Foxes">
+            <eqn>20</eqn>
+            <inflow>births</inflow>
+            <outflow>deaths</outflow>
+            <units>Number</units>
+            <doc>Number of foxes</doc>
+        </stock>
+        <flows name="births">
+            <eqn>Value * 2.3"</eqn>
+        </flows>
+        <flows name="deaths">
+            <eqn>Value / 2.4"</eqn>
+        </flows>
+        <aux name="Value">
+            <eqn>44*2-value1</eqn>
+        </aux>
+    </model>
+</xmile>
+

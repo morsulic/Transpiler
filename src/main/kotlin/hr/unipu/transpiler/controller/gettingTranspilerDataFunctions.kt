@@ -46,7 +46,7 @@ fun gettingOptionsTagData(tokens: MutableList<String>): Boolean {
     return optionslList.contains("<uses_submodels/>")
 }
 
-fun gettingHeaderTagData(tokens: MutableList<String>) {
+/*fun gettingHeaderTagData(tokens: MutableList<String>) {
 
     val headerList = breakListToSubList(tokens, "<header", "</header>")
 
@@ -83,7 +83,7 @@ fun gettingHeaderTagData(tokens: MutableList<String>) {
      */
 
 
-}
+}*/
 
 /**
  * XMILE file Base-Level Conformance

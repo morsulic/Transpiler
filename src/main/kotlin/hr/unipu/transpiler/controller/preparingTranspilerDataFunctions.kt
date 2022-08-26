@@ -6,7 +6,45 @@ import hr.unipu.transpiler.globalVariables.transpilerDataMap
  * 1. Function for preparing of inflows and outflows of stock
  *     preparingInflowsAndOutflowsOfStock
  */
+fun prepareInflowsOfStock(inflowsList: List<String>):String{
+    var flows = ""
+    for (i in inflowsList.indices) {
+        var x = inflowsList[i]
+        var constantsList = mutableListOf<String>()
+        constantsList = preparingEquation(constantsList, "constants")
+        if (constantsList.contains(x.lowercase())) {
+            x = x.uppercase()
+        }
+        flows = if (i == 0) {
+            x
+        } else {
+            "$flows + ($x"
+        }
+    }
+    if (inflowsList.size > 0) {
+        flows += ")".repeat(inflowsList.size - 1)
+    }
+    return flows
+}
+fun prepareOutflowsOfStock(outflowList: List<String>):String{
+    var flows = ""
+    for (i in outflowList.indices) {
+        var x = outflowList[i]
+        var constantsList = mutableListOf<String>()
+        constantsList = preparingEquation(constantsList, "constants")
 
+        if (constantsList.contains(x.lowercase())) {
+            x = x.uppercase()
+        }
+        flows = if (i == 0) {
+            " - ($x"
+        } else {
+            "$flows + ($x"
+        }
+    }
+    flows += ")".repeat(outflowList.size)
+    return flows
+}
 fun preparingInflowsAndOutflowsOfStock(flowsList: MutableList<MutableList<String>>,flowType: String): String {
     var flows = ""
     if (flowType=="inflows"){

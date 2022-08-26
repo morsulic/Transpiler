@@ -26,73 +26,73 @@ fun transpilerStringDescriptionText() {
 
 fun transpilerStringCompanionObjects(modelName: String) {
     transpilerString += constantValuesBeginning
-    transpilerString += "$tab// companion object keys\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object keys") }.values.toString()
+    transpilerString += "// companion object keys\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object keys") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab// companion object values\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object values") }.values.toString()
-        .removeSurrounding("[", "]").replace('\t', '\n') + "\n"
-    transpilerString += "$tab// companion object simSpec\n"
+    transpilerString += "// companion object values\n"
+    transpilerString +=   transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object values") }.values.toString()
+        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    transpilerString += "// companion object simSpec\n"
     if (transpilerDataMap.contains("$modelName SimSpecs empty:")) {
-        transpilerString += tab + "const val INITIAL_TIME_VALUE = " + transpilerDataMap.getValue("default SimSpecs Initial time:") + "\n"
-        transpilerString += tab + "const val FINAL_TIME_VALUE = " + transpilerDataMap.getValue("default SimSpecs Final time:") + "\n"
-        transpilerString += tab + "const val TIME_STEP_VALUE = " + transpilerDataMap.getValue("default SimSpecs Time step:") + "\n\n}"
+        transpilerString +=  "const val INITIAL_TIME_VALUE = " + transpilerDataMap.getValue("default SimSpecs Initial time:") + "\n"
+        transpilerString +=  "const val FINAL_TIME_VALUE = " + transpilerDataMap.getValue("default SimSpecs Final time:") + "\n"
+        transpilerString +=  "const val TIME_STEP_VALUE = " + transpilerDataMap.getValue("default SimSpecs Time step:") + "\n\n}"
     } else {
-        transpilerString += tab + "const val INITIAL_TIME_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Initial time:") + "\n"
-        transpilerString += tab + "const val FINAL_TIME_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Final time:") + "\n"
-        transpilerString += tab + "const val TIME_STEP_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Time step:") + "\n\n}"
+        transpilerString +=  "const val INITIAL_TIME_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Initial time:") + "\n"
+        transpilerString +=  "const val FINAL_TIME_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Final time:") + "\n"
+        transpilerString +=  "const val TIME_STEP_VALUE = " + transpilerDataMap.getValue("$modelName SimSpecs Time step:") + "\n\n}"
     }
     transpilerString += initializationOfModelCreateAllSystemElements
     if (transpilerDataMap.contains("$modelName SimSpecs empty:")) {
-        transpilerString += tab + "model.integrationType = " + transpilerDataMap.getValue("default SimSpecs Method:") + "\n"
-        transpilerString += tab + "model.name = \"$modelName\" // name is optional\n"
-        transpilerString += tab + "model.timeUnit = \"" + transpilerDataMap.getValue("default SimSpecs Time unit:") +
+        transpilerString += "model.integrationType = " + transpilerDataMap.getValue("default SimSpecs Method:") + "\n"
+        transpilerString += "model.name = \"$modelName\" // name is optional\n"
+        transpilerString += "model.timeUnit = \"" + transpilerDataMap.getValue("default SimSpecs Time unit:") +
                 "\" // time unit is optional\n"
 
     } else {
-        transpilerString += tab + "model.integrationType = " + transpilerDataMap.getValue("$modelName SimSpecs Method:") + "\n"
-        transpilerString += tab + "model.name = \"$modelName\" // name is optional"
-        transpilerString += tab + "model.timeUnit = \"" + transpilerDataMap.getValue("$modelName SimSpecs Time unit:") +
+        transpilerString +=  "model.integrationType = " + transpilerDataMap.getValue("$modelName SimSpecs Method:") + "\n"
+        transpilerString +=  "model.name = \"$modelName\" // name is optional"
+        transpilerString +=  "model.timeUnit = \"" + transpilerDataMap.getValue("$modelName SimSpecs Time unit:") +
                 "\" // time unit is optional\n"
     }
 }
 
 fun transpilerStringCreateAllSystemElements(modelName: String) {
     transpilerString += createAllSystemElements
-    transpilerString += "$tab//2. Constants\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Constants") }.values.toString()
+    transpilerString += "//2. Constants\n"
+    transpilerString += transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Constants") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//2. Stocks\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Stocks") }.values.toString()
+    transpilerString += "//2. Stocks\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Stocks") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//2. Flows\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Flows") }.values.toString()
+    transpilerString += "//2. Flows\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Flows") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//2. Converters\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Converters") }.values.toString()
+    transpilerString += "//2. Converters\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Converters") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
 }
 
 fun transpilerStringCreateInitialValues(modelName: String) {
     transpilerString += initialValues
-    transpilerString += "$tab// 3. Stocks\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("3. Stocks") }.values.toString()
+    transpilerString += "// 3. Stocks\n"
+    transpilerString += transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("3. Stocks") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
 }
 
 fun transpilerStringEquations(modelName: String) {
     transpilerString += equations
-    transpilerString += "$tab//4. Constants\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Constants") }.values.toString()
+    transpilerString += "//4. Constants\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Constants") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//4. Stocks\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Stocks") }.values.toString()
+    transpilerString += "//4. Stocks\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Stocks") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//4. Flows\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Flows") }.values.toString()
+    transpilerString += "//4. Flows\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Flows") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
-    transpilerString += "$tab//4. Converters\n"
-    transpilerString += tab + transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Converters") }.values.toString()
+    transpilerString += "//4. Converters\n"
+    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Converters") }.values.toString()
         .removeSurrounding("[", "]").replace(',', '\n') + "\n"
 }
 

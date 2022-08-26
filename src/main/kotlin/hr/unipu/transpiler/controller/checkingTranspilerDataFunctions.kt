@@ -5,11 +5,10 @@ package hr.unipu.transpiler.controller
 *        checkingNameListIsAdded
 */
 
-fun checkingTagListIsAdded(tag: List<String>, tagName: String): Boolean {
-    if (tag.isNotEmpty()) {
-        return true
+fun checkingTagListIsAdded(tag: List<String>, tagName: String) {
+    if (tag.isEmpty()) {
+        error("Error: $tagName not properly configured!!!")
     }
-    error("Error: $tagName not properly configured!!!")
 }
 /**
  * 2. Function for checking is name or equation is added in tag
