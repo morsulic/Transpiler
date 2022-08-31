@@ -6,7 +6,7 @@ import hr.unipu.transpiler.globalVariables.transpilerDataMap
  * 1. Function for preparing of inflows and outflows of stock
  *     preparingInflowsAndOutflowsOfStock
  */
-fun prepareInflowsOfStock(inflowsList: List<String>):String{
+fun preparingInflowsOfStock(inflowsList: List<String>):String{
     var flows = ""
     for (i in inflowsList.indices) {
         var x = inflowsList[i]
@@ -26,7 +26,7 @@ fun prepareInflowsOfStock(inflowsList: List<String>):String{
     }
     return flows
 }
-fun prepareOutflowsOfStock(outflowList: List<String>):String{
+fun preparingOutflowsOfStock(outflowList: List<String>):String{
     var flows = ""
     for (i in outflowList.indices) {
         var x = outflowList[i]
@@ -90,11 +90,12 @@ fun preparingInflowsAndOutflowsOfStock(flowsList: MutableList<MutableList<String
  */
 
 fun preparingEquationForMacroFunctions(valueEquation: String):String{
-    if (equationContainsMacroFunction(valueEquation)) {
+    if (checkContainsMacroFunction(valueEquation)) {
         return "/*$valueEquation*/"
     }
     return valueEquation
 }
+
 
 /**
  * 3. Function for preparing equation for constants uppercase syntax

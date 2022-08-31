@@ -5,7 +5,12 @@ import hr.unipu.transpiler.globalVariables.transpilerDataMap
 import hr.unipu.transpiler.globalVariables.transpilerDataMapKsdToolkitSet
 import hr.unipu.transpiler.globalVariables.transpilerString
 
-val tab = "\t".repeat(4)
+
+fun saveDataInTranspilerString(map: Map<String,String>){
+    for(element in map ){
+        transpilerString += element.value+"\n"
+    }
+}
 
 fun transpilerStringPackageAndImports() {
     transpilerString += packageAndImports
@@ -14,9 +19,8 @@ fun transpilerStringPackageAndImports() {
 fun transpilerStringDescriptionText() {
     transpilerString += "\n" + "/**\n"
     transpilerString += " * XMILE version = " + transpilerDataMap.getValue("Version") + "\n"
-    transpilerString += " * xmlns = " + transpilerDataMap.getValue("xmlns1") + "\n"
-    transpilerString += " * xmlnsISEE = " + transpilerDataMap.getValue("xmlnsISEE") + "\n"
-    transpilerString += " * Model name = " + transpilerDataMap.getValue("Model name").lowercase()
+    transpilerString += " * xmlns = " + transpilerDataMap.getValue("xmlns") + "\n"
+    transpilerString += " * Model name = " + transpilerDataMap.getValue("Header root model name").lowercase()
         .replaceFirstChar { it.uppercase() } + "\n"
     transpilerString += " * Vendor = " + transpilerDataMap.getValue("Vendor") + "\n"
     transpilerString += " * Product name = " + transpilerDataMap.getValue("Product name") + "\n"
@@ -27,11 +31,9 @@ fun transpilerStringDescriptionText() {
 fun transpilerStringCompanionObjects(modelName: String) {
     transpilerString += constantValuesBeginning
     transpilerString += "// companion object keys\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object keys") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object keys") })
     transpilerString += "// companion object values\n"
-    transpilerString +=   transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object values") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("companion object values") })
     transpilerString += "// companion object simSpec\n"
     if (transpilerDataMap.contains("$modelName SimSpecs empty:")) {
         transpilerString +=  "const val INITIAL_TIME_VALUE = " + transpilerDataMap.getValue("default SimSpecs Initial time:") + "\n"
@@ -60,40 +62,39 @@ fun transpilerStringCompanionObjects(modelName: String) {
 fun transpilerStringCreateAllSystemElements(modelName: String) {
     transpilerString += createAllSystemElements
     transpilerString += "//2. Constants\n"
-    transpilerString += transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Constants") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(
+        transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName")
+                && it.contains("2. Constants") })
     transpilerString += "//2. Stocks\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Stocks") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(
+        transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName")
+                && it.contains("2. Stocks") })
     transpilerString += "//2. Flows\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Flows") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(
+        transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName")
+                && it.contains("2. Flows") })
     transpilerString += "//2. Converters\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("2. Converters") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(
+        transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName")
+                && it.contains("2. Converters") })
 }
 
 fun transpilerStringCreateInitialValues(modelName: String) {
     transpilerString += initialValues
     transpilerString += "// 3. Stocks\n"
-    transpilerString += transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("3. Stocks") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("3. Stocks") })
 }
 
 fun transpilerStringEquations(modelName: String) {
     transpilerString += equations
     transpilerString += "//4. Constants\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Constants") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Constants") })
     transpilerString += "//4. Stocks\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Stocks") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Stocks") })
     transpilerString += "//4. Flows\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Flows") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Flows") })
     transpilerString += "//4. Converters\n"
-    transpilerString +=  transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Converters") }.values.toString()
-        .removeSurrounding("[", "]").replace(',', '\n') + "\n"
+    saveDataInTranspilerString(transpilerDataMapKsdToolkitSet.filterKeys { it.contains("$modelName") && it.contains("4. Converters") })
 }
 
 fun transpilerStringCreator() {
@@ -105,6 +106,6 @@ fun transpilerStringCreator() {
         transpilerStringCreateAllSystemElements(modelName)
         transpilerStringCreateInitialValues(modelName)
         transpilerStringEquations(modelName)
+        transpilerString+="}}"
     }
 }
-

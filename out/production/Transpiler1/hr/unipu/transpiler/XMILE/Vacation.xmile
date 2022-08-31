@@ -1,0 +1,1385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee"/>
+		<name>Vacation</name>
+		<uuid>18fb9a21-0468-4d6b-89f4-d245e3595162</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="1.1rc1" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<sim_specs isee:simulation_delay="0" method="Euler" time_units="Weeks" isee:pause_after_rates="false" isee:instantaneous_flows="false">
+		<start>1</start>
+		<stop>52</stop>
+		<dt>0.125</dt>
+	</sim_specs>
+	<isee:prefs show_module_prefix="true" live_update_on_drag="true" layer="map"/>
+	<model_units>
+		<unit name="Dimensionless">
+			<eqn>1</eqn>
+			<alias>dmnl</alias>
+			<alias>unitless</alias>
+		</unit>
+	</model_units>
+	<isee:sensi_specs run="false" method="multivariate" runs="0"/>
+	<model>
+		<variables>
+			<stock name="Vacation_Effect_on\nDecompression">
+				<eqn>desired_effect_from_vacation</eqn>
+				<inflow>adjust_vacation_effect</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="adjust\nvacation\neffect">
+				<eqn>(desired_effect_from_vacation - Vacation_Effect_on_Decompression)/time_to_adjust_effect</eqn>
+			</flow>
+			<aux name="vacation" flow_concept="true">
+				<eqn>IF (vacation_switch = 1 AND total_weeks_vacation_taken &lt; 4)
+THEN (IF TIME - Last_Vacation_Start &gt;= time_working_before_vacation THEN 1 
+ELSE 0)
+ELSE 0</eqn>
+			</aux>
+			<aux name="desired effect\nfrom vacation">
+				<eqn>(1 - vacation) + vacation*0.5</eqn>
+			</aux>
+			<aux name="time to adjust\neffect">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="time working\nbefore vacation">
+				<eqn>12</eqn>
+			</aux>
+			<aux name="length of\nvacation">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="Last Vacation\nStart">
+				<eqn>STARTTIME</eqn>
+				<inflow>update_vacation_start</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="update\nvacation start">
+				<eqn>IF DELAY(vacation, length_of_vacation - DT) = 1
+THEN ((TIME - length_of_vacation + DT) - Last_Vacation_Start + DT)/DT
+ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Level of Stress">
+				<doc>Stress Level measured on a scale of 1-10. One being not at all stressed, 10 being the most stressed.</doc>
+				<eqn>20</eqn>
+				<inflow>accumulating_stress</inflow>
+				<outflow>decompressing</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulating stress">
+				<eqn>(1 - vacation)*effect_of_stress_on_building_stress*actual_stress</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="decompressing">
+				<eqn>Level_of_Stress/actual_time_to_decompress</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Workload">
+				<eqn>normal_workload</eqn>
+				<inflow>piling_up</inflow>
+				<outflow>working_down</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="piling up">
+				<eqn>(1 - vacation)*(normal_workload + added_assignments)</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="working down">
+				<eqn>(1 - vacation)*productivity</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="normal time to\ndecompress">
+				<eqn>4</eqn>
+			</aux>
+			<aux name="normal\nstress">
+				<eqn>5</eqn>
+			</aux>
+			<aux name="effect of stress\non decompression">
+				<eqn>Level_of_Stress</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1,1.07936507936508,1.21269841269841,1.40952380952381,1.61904761904762,1.7968253968254,1.9047619047619,2</ypts>
+				</gf>
+			</aux>
+			<aux name="normal\nproductivity">
+				<eqn>normal_workload</eqn>
+			</aux>
+			<aux name="added assignments">
+				<eqn>PULSE(number_of_added_assignments*DT, 2, 0)</eqn>
+				<scale min="0" max="30"/>
+			</aux>
+			<aux name="normal\nworkload">
+				<eqn>10</eqn>
+			</aux>
+			<aux name="excess work effect\non stress">
+				<eqn>Workload/normal_workload</eqn>
+				<gf>
+					<xscale min="0" max="2"/>
+					<yscale min="0" max="3"/>
+					<ypts>0,0.0202020202020202,0.101010101010101,0.242424242424242,0.495238095238095,1,1.82857142857143,2.41904761904762,2.76190476190476,2.92380952380952,3</ypts>
+				</gf>
+			</aux>
+			<aux name="productivity">
+				<eqn>excess_work_effect_on_productivity*stress_effect_on_productivity*normal_productivity</eqn>
+				<scale min="6" max="12"/>
+			</aux>
+			<aux name="stress effect\non productivity">
+				<eqn>Level_of_Stress</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="0.2" max="1.2"/>
+					<ypts>1.05806451612903,1.03548387096774,1,0.97,0.912903225806452,0.858064516129032,0.796774193548387,0.732258064516129,0.661290322580645,0.587096774193548,0.5</ypts>
+				</gf>
+			</aux>
+			<aux name="actual time to\ndecompress">
+				<eqn>effect_of_stress_on_decompression*Vacation_Effect_on_Decompression*normal_time_to_decompress</eqn>
+			</aux>
+			<aux name="number of added assignments">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="excess work effect on productivity">
+				<eqn>Workload/normal_workload</eqn>
+				<gf>
+					<xscale min="1" max="2"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1.06451612903226,1.17972350230415,1.31336405529954,1.4147465437788,1.46543778801843,1.49308755760369,1.49769585253456,1.50230414746544</ypts>
+				</gf>
+				<units>Unitless</units>
+			</aux>
+			<aux name="actual\nstress">
+				<eqn>excess_work_effect_on_stress*normal_stress</eqn>
+			</aux>
+			<aux name="stress upper limit">
+				<eqn>100</eqn>
+			</aux>
+			<aux name="maximum\nstress change" flow_concept="true">
+				<eqn>(stress_upper_limit - Level_of_Stress)/1 + decompressing</eqn>
+			</aux>
+			<aux name="effect of stress\non building stress">
+				<eqn>maximum_stress_change/MAX(actual_stress, 0.01)</eqn>
+				<gf>
+					<xscale min="0" max="2.2"/>
+					<yscale min="0" max="1"/>
+					<ypts>0,0.295238095238095,0.536507936507936,0.73015873015873,0.838095238095238,0.892063492063492,0.93968253968254,0.968253968253968,0.987301587301587,0.996825396825397,1</ypts>
+				</gf>
+			</aux>
+			<aux name="vacation switch">
+				<eqn>0</eqn>
+			</aux>
+			<stock name="total weeks\nvacation taken">
+				<eqn>0</eqn>
+				<inflow>accumulate_vacation_weeks</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulate\nvacation weeks">
+				<eqn>vacation</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Vacation Effect on\nDecompression 1">
+				<eqn>desired_effect_from_vacation_1</eqn>
+				<inflow>adjust_vacation_effect_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="adjust vacation\neffect 1">
+				<eqn>(desired_effect_from_vacation_1 - Vacation_Effect_on_Decompression_1)/time_to_adjust_effect_1</eqn>
+			</flow>
+			<aux name="vacation 1" flow_concept="true">
+				<eqn>IF (vacation_switch_1 = 1 AND total_weeks_vacation_taken_1 &lt; 4)  THEN (IF
+ TIME - Last_Vacation_Start_1 &gt;= time_working_before_vacation_1 THEN 1 
+ELSE 0) ELSE 0</eqn>
+			</aux>
+			<aux name="desired effect\nfrom vacation 1">
+				<eqn>(1 - vacation_1) + vacation_1*0.5</eqn>
+			</aux>
+			<aux name="time to adjust\neffect 1">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="time working\nbefore vacation 1">
+				<eqn>12</eqn>
+			</aux>
+			<aux name="length of\nvacation 1">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="Last Vacation\nStart 1">
+				<eqn>STARTTIME</eqn>
+				<inflow>update_vacation_start_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="update\nvacation start 1">
+				<eqn>IF DELAY(vacation_1, length_of_vacation_1 - DT) = 1
+THEN ((TIME-length_of_vacation_1 + DT) - Last_Vacation_Start_1 + DT)/DT
+ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Level of Stress 1">
+				<doc>Stress Level measured on a scale of 1-10. One being not at all stressed, 10 being the most stressed.</doc>
+				<eqn>20</eqn>
+				<inflow>accumulating_stress_1</inflow>
+				<outflow>decompressing_1</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulating stress 1">
+				<eqn>(1 - vacation_1)*effect_of_stress_on_building_stress_1*actual_stress_1</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="decompressing 1">
+				<eqn>Level_of_Stress_1/actual_time_to_decompress_1</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Workload 1">
+				<eqn>normal_workload_1</eqn>
+				<inflow>piling_up_1</inflow>
+				<outflow>working_down_1</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="piling up 1">
+				<eqn>(1 - vacation_1)* (normal_workload_1+ added_assignments_1)</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="working down 1">
+				<eqn>(1 - vacation_1)*productivity_1</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="normal time to\ndecompress 1">
+				<eqn>4</eqn>
+			</aux>
+			<aux name="normal\nstress 1">
+				<eqn>5</eqn>
+			</aux>
+			<aux name="effect of stress\non decompression 1">
+				<eqn>Level_of_Stress_1</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1,1.07936507936508,1.21269841269841,1.40952380952381,1.61904761904762,1.7968253968254,1.9047619047619,2</ypts>
+				</gf>
+			</aux>
+			<aux name="normal\nproductivity 1">
+				<eqn>normal_workload_1</eqn>
+			</aux>
+			<aux name="added assignments 1">
+				<eqn>PULSE(number_of_assignments_added_1*DT, 2,0 )</eqn>
+				<scale min="0" max="30"/>
+			</aux>
+			<aux name="normal\nworkload 1">
+				<eqn>10</eqn>
+			</aux>
+			<aux name="excess work effect\non stress 1">
+				<eqn>Workload_1/normal_workload_1</eqn>
+				<gf>
+					<xscale min="0" max="2"/>
+					<yscale min="0" max="3"/>
+					<ypts>0,0.0202020202020202,0.101010101010101,0.242424242424242,0.495238095238095,1,1.82857142857143,2.41904761904762,2.76190476190476,2.92380952380952,3</ypts>
+				</gf>
+			</aux>
+			<aux name="productivity 1">
+				<eqn>excess_work_effect_on_productivity_1*stress_effect_on_productivity_1*normal_productivity_1</eqn>
+				<scale min="6" max="12"/>
+			</aux>
+			<aux name="stress effect\non productivity 1">
+				<eqn>Level_of_Stress_1</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="0.2" max="1.2"/>
+					<ypts>1.05806451612903,1.03548387096774,1,0.961290322580645,0.912903225806452,0.858064516129032,0.796774193548387,0.732258064516129,0.661290322580645,0.587096774193548,0.5</ypts>
+				</gf>
+			</aux>
+			<aux name="actual time to\ndecompress 1">
+				<eqn>effect_of_stress_on_decompression_1 * Vacation_Effect_on_Decompression_1 * normal_time_to_decompress_1</eqn>
+			</aux>
+			<aux name="number of assignments added 1">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="excess work effect on productivity 1">
+				<eqn>Workload_1/normal_workload_1</eqn>
+				<gf>
+					<xscale min="1" max="2"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1.06451612903226,1.17972350230415,1.31336405529954,1.4147465437788,1.46543778801843,1.49308755760369,1.49769585253456,1.50230414746544</ypts>
+				</gf>
+				<units>Unitless</units>
+			</aux>
+			<aux name="actual\nstress 1">
+				<eqn>excess_work_effect_on_stress_1*normal_stress_1</eqn>
+			</aux>
+			<aux name="stress upper limit 1">
+				<eqn>100</eqn>
+			</aux>
+			<aux name="maximum stress change 1" flow_concept="true">
+				<eqn>(stress_upper_limit_1 - Level_of_Stress_1)/1 + decompressing_1</eqn>
+			</aux>
+			<aux name="effect of stress\non building stress 1">
+				<eqn>maximum_stress_change_1/MAX(actual_stress_1, 0.01)</eqn>
+				<gf>
+					<xscale min="0" max="2.2"/>
+					<yscale min="0" max="1"/>
+					<ypts>0,0.295238095238095,0.536507936507936,0.73015873015873,0.838095238095238,0.892063492063492,0.93968253968254,0.968253968253968,0.987301587301587,0.996825396825397,1</ypts>
+				</gf>
+			</aux>
+			<aux name="vacation switch 1">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="total weeks\nvacation taken 1">
+				<eqn>0</eqn>
+				<inflow>accumulate_vacation_weeks_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulate\nvacation weeks 1">
+				<eqn>vacation_1</eqn>
+				<non_negative/>
+			</flow>
+			<group name="Final Page" run="false">
+				<entity name="stress_upper_limit_1"/>
+				<entity name="piling_up_1"/>
+				<entity name="update_vacation_start_1"/>
+				<entity name="time_working_before_vacation_1"/>
+				<entity name="Level_of_Stress_1"/>
+				<entity name="productivity_1"/>
+				<entity name="desired_effect_from_vacation_1"/>
+				<entity name="number_of_assignments_added_1"/>
+				<entity name="accumulating_stress_1"/>
+				<entity name="working_down_1"/>
+				<entity name="length_of_vacation_1"/>
+				<entity name="decompressing_1"/>
+				<entity name="adjust_vacation_effect_1"/>
+				<entity name="effect_of_stress_on_building_stress_1"/>
+				<entity name="time_to_adjust_effect_1"/>
+				<entity name="total_weeks_vacation_taken_1"/>
+				<entity name="excess_work_effect_on_stress_1"/>
+				<entity name="accumulate_vacation_weeks_1"/>
+				<entity name="normal_stress_1"/>
+				<entity name="normal_workload_1"/>
+				<entity name="maximum_stress_change_1"/>
+				<entity name="Workload_1"/>
+				<entity name="actual_stress_1"/>
+				<entity name="vacation_switch_1"/>
+				<entity name="Vacation_Effect_on_Decompression_1"/>
+				<entity name="excess_work_effect_on_productivity_1"/>
+				<entity name="Last_Vacation_Start_1"/>
+				<entity name="added_assignments_1"/>
+				<entity name="stress_effect_on_productivity_1"/>
+				<entity name="effect_of_stress_on_decompression_1"/>
+				<entity name="vacation_1"/>
+				<entity name="normal_productivity_1"/>
+				<entity name="actual_time_to_decompress_1"/>
+				<entity name="normal_time_to_decompress_1"/>
+			</group>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_family="Arial" font_size="12pt"/>
+				<numeric_display color="blue" background="white" font_family="Arial" font_size="9pt" isee:transparent="false"/>
+				<graph color="black" background="white" font_family="Arial" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" legend_position="bottom" isee:transparent="false" axis_label_font_size="9pt"/>
+				<table color="black" background="#E0E0E0" text_align="right" font_family="Arial" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" blank_column_width="80" column_width="160" isee:report_month_names="false" interval="1" report_balances="begining" report_flows="instantaneous" header_text_align="center"/>
+				<button color="black" background="#E0E0E0" font_family="Arial" font_size="12pt" transparent="false" corner_radius="0" icon_side="top"/>
+				<isee:annotation color="black" background="#E0E0E0" font_family="Arial" font_size="12pt" transparent="false" corner_radius="0" icon_side="top" popup_background_color="#FFFECF" popup_text_align="left" popup_vertical_text_align="top"/>
+				<slider color="black" background="#E0E0E0" font_family="Arial" font_size="12pt" num_ticks="3" label_side="top"/>
+				<knob color="#66CC66" background="#E0E0E0" font_family="Arial" font_size="12pt" label_side="bottom"/>
+				<numeric_input color="black" background="#E0E0E0" font_family="Arial" font_size="12pt" label_side="left"/>
+				<switch color="black" background="#E0E0E0" font_family="Arial" font_size="12pt" label_side="top"/>
+				<options color="black" background="white" font_family="Arial" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_family="Arial" font_size="12pt"/>
+				<group_input color="black" background="#E0E0E0" font_family="Arial" font_size="12pt"/>
+				<lamp color="black" background="white" font_family="Arial" font_size="9pt"/>
+			</style>
+			<view isee:show_pages="false" page_width="816" page_height="1056" isee:page_cols="3" isee:page_rows="2" isee:scroll_y="300" isee:popup_graphs_are_comparative="true" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_family="Arial" font_size="9pt" label_side="top" label_angle="0">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_family="Arial" font_size="9pt" label_side="bottom" label_angle="0"/>
+					<module color="blue" background="white" font_color="blue" font_family="Arial" font_size="9pt" label_side="top" label_angle="0">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_family="Arial" font_size="9pt" label_side="bottom" label_angle="0">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_family="Arial" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_family="Arial" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_family="Arial" font_size="12pt"/>
+					<numeric_display color="blue" background="white" font_family="Arial" font_size="9pt" isee:transparent="false"/>
+					<graph color="black" background="white" font_family="Arial" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" legend_position="bottom" isee:transparent="false" axis_label_font_size="9pt"/>
+					<table color="black" background="#E0E0E0" text_align="right" font_family="Arial" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" blank_column_width="80" column_width="160" isee:report_month_names="false" interval="1" report_balances="begining" report_flows="instantaneous" header_text_align="center"/>
+				</style>
+				<connector uid="1" color="red" font_family="Arial" angle="341.565">
+					<from>stress_effect_on_productivity</from>
+					<to>productivity</to>
+				</connector>
+				<connector uid="2" color="red" font_family="Arial" angle="343.301">
+					<from>
+						<alias uid="3"/>
+					</from>
+					<to>update_vacation_start</to>
+				</connector>
+				<connector uid="4" color="red" font_family="Arial" angle="122.005">
+					<from>productivity_1</from>
+					<to>working_down_1</to>
+				</connector>
+				<connector uid="5" color="red" font_family="Arial" angle="0">
+					<from>actual_stress</from>
+					<to>effect_of_stress_on_building_stress</to>
+				</connector>
+				<connector uid="6" color="red" font_family="Arial" angle="90">
+					<from>actual_stress_1</from>
+					<to>accumulating_stress_1</to>
+				</connector>
+				<connector uid="7" color="red" font_family="Arial" angle="83.6598">
+					<from>added_assignments</from>
+					<to>piling_up</to>
+				</connector>
+				<connector uid="8" color="red" font_family="Arial" angle="71.5651">
+					<from>
+						<alias uid="9"/>
+					</from>
+					<to>excess_work_effect_on_stress</to>
+				</connector>
+				<connector uid="10" color="red" font_family="Arial" angle="319.399">
+					<from>stress_effect_on_productivity_1</from>
+					<to>productivity_1</to>
+				</connector>
+				<connector uid="11" color="red" font_family="Arial" angle="64.7989">
+					<from>
+						<alias uid="12"/>
+					</from>
+					<to>actual_time_to_decompress</to>
+				</connector>
+				<connector uid="13" color="red" font_family="Arial" angle="48.5763">
+					<from>Workload</from>
+					<to>excess_work_effect_on_stress</to>
+				</connector>
+				<connector uid="14" color="red" font_family="Arial" angle="135">
+					<from>maximum_stress_change</from>
+					<to>effect_of_stress_on_building_stress</to>
+				</connector>
+				<connector uid="15" color="red" font_family="Arial" angle="46.7357">
+					<from>
+						<alias uid="16"/>
+					</from>
+					<to>vacation</to>
+				</connector>
+				<connector uid="17" color="red" font_family="Arial" angle="135">
+					<from>excess_work_effect_on_stress_1</from>
+					<to>actual_stress_1</to>
+				</connector>
+				<connector uid="18" color="red" font_family="Arial" angle="0">
+					<from>actual_stress_1</from>
+					<to>effect_of_stress_on_building_stress_1</to>
+				</connector>
+				<connector uid="19" color="red" font_family="Arial" angle="102.529">
+					<from>normal_workload</from>
+					<to>piling_up</to>
+				</connector>
+				<connector uid="20" color="red" font_family="Arial" angle="147.995">
+					<from>vacation_switch</from>
+					<to>vacation</to>
+				</connector>
+				<connector uid="21" color="red" font_family="Arial" angle="7.76517">
+					<from>Level_of_Stress</from>
+					<to>maximum_stress_change</to>
+				</connector>
+				<connector uid="22" color="red" font_family="Arial" angle="26.5651">
+					<from>
+						<alias uid="23"/>
+					</from>
+					<to>piling_up</to>
+				</connector>
+				<connector uid="24" color="red" font_family="Arial" angle="147.995">
+					<from>vacation_switch_1</from>
+					<to>vacation_1</to>
+				</connector>
+				<connector uid="25" color="red" font_family="Arial" angle="266.634">
+					<from>Level_of_Stress</from>
+					<to>stress_effect_on_productivity</to>
+				</connector>
+				<connector uid="26" font_family="Arial" angle="204.444">
+					<from>Last_Vacation_Start</from>
+					<to>update_vacation_start</to>
+				</connector>
+				<connector uid="27" color="black" font_family="Arial" angle="226.736">
+					<from>Last_Vacation_Start_1</from>
+					<to>update_vacation_start_1</to>
+				</connector>
+				<connector uid="28" color="red" font_family="Arial" angle="282.529">
+					<from>normal_workload_1</from>
+					<to>excess_work_effect_on_productivity_1</to>
+				</connector>
+				<connector uid="29" color="red" font_family="Arial" angle="161.565">
+					<from>normal_time_to_decompress_1</from>
+					<to>actual_time_to_decompress_1</to>
+				</connector>
+				<connector uid="30" color="red" font_family="Arial" angle="63.4349">
+					<from>normal_stress</from>
+					<to>actual_stress</to>
+				</connector>
+				<connector uid="31" color="red" font_family="Arial" angle="37.6942">
+					<from>
+						<alias uid="32"/>
+					</from>
+					<to>vacation_1</to>
+				</connector>
+				<connector uid="33" color="red" font_family="Arial" angle="0">
+					<from>desired_effect_from_vacation</from>
+					<to>adjust_vacation_effect</to>
+				</connector>
+				<connector uid="34" color="red" font_family="Arial" angle="83.6598">
+					<from>time_to_adjust_effect_1</from>
+					<to>adjust_vacation_effect_1</to>
+				</connector>
+				<connector uid="35" color="red" font_family="Arial" angle="261.278">
+					<from>
+						<alias uid="36"/>
+					</from>
+					<to>working_down_1</to>
+				</connector>
+				<connector uid="37" color="red" font_family="Arial" angle="206.565">
+					<from>
+						<alias uid="38"/>
+					</from>
+					<to>normal_productivity</to>
+				</connector>
+				<connector uid="39" color="red" font_family="Arial" angle="322.306">
+					<from>
+						<alias uid="40"/>
+					</from>
+					<to>vacation</to>
+				</connector>
+				<connector uid="41" color="red" font_family="Arial" angle="95.7106">
+					<from>vacation_1</from>
+					<to>desired_effect_from_vacation_1</to>
+				</connector>
+				<connector uid="42" color="red" font_family="Arial" angle="0">
+					<from>desired_effect_from_vacation_1</from>
+					<to>adjust_vacation_effect_1</to>
+				</connector>
+				<connector uid="43" color="red" font_family="Arial" angle="57.0948">
+					<from>
+						<alias uid="44"/>
+					</from>
+					<to>actual_time_to_decompress_1</to>
+				</connector>
+				<connector uid="45" color="red" font_family="Arial" angle="83.6598">
+					<from>added_assignments_1</from>
+					<to>piling_up_1</to>
+				</connector>
+				<connector uid="46" color="red" font_family="Arial" angle="159.444">
+					<from>maximum_stress_change_1</from>
+					<to>effect_of_stress_on_building_stress_1</to>
+				</connector>
+				<connector uid="47" color="red" font_family="Arial" angle="90">
+					<from>actual_stress</from>
+					<to>accumulating_stress</to>
+				</connector>
+				<connector uid="48" color="red" font_family="Arial" angle="234.462">
+					<from>time_working_before_vacation_1</from>
+					<to>vacation_1</to>
+				</connector>
+				<connector uid="49" color="red" font_family="Arial" angle="37.6942">
+					<from>Level_of_Stress_1</from>
+					<to>maximum_stress_change_1</to>
+				</connector>
+				<connector uid="50" color="red" font_family="Arial" angle="26.5651">
+					<from>
+						<alias uid="51"/>
+					</from>
+					<to>piling_up_1</to>
+				</connector>
+				<connector uid="52" color="red" font_family="Arial" angle="147.995">
+					<from>stress_upper_limit_1</from>
+					<to>maximum_stress_change_1</to>
+				</connector>
+				<connector uid="53" color="red" font_family="Arial" angle="206.565">
+					<from>effect_of_stress_on_building_stress_1</from>
+					<to>accumulating_stress_1</to>
+				</connector>
+				<connector uid="54" color="red" font_family="Arial" angle="237.995">
+					<from>vacation_1</from>
+					<to>accumulating_stress_1</to>
+				</connector>
+				<connector uid="55" color="red" font_family="Arial" angle="322.306">
+					<from>
+						<alias uid="56"/>
+					</from>
+					<to>vacation_1</to>
+				</connector>
+				<connector uid="57" color="red" font_family="Arial" angle="126.87">
+					<from>actual_time_to_decompress</from>
+					<to>decompressing</to>
+				</connector>
+				<connector uid="58" color="red" font_family="Arial" angle="343.301">
+					<from>
+						<alias uid="59"/>
+					</from>
+					<to>update_vacation_start_1</to>
+				</connector>
+				<connector uid="60" color="red" font_family="Arial" angle="32.0054">
+					<from>
+						<alias uid="61"/>
+					</from>
+					<to>accumulate_vacation_weeks</to>
+				</connector>
+				<connector uid="62" color="red" font_family="Arial" angle="333.435">
+					<from>effect_of_stress_on_decompression</from>
+					<to>actual_time_to_decompress</to>
+				</connector>
+				<connector uid="63" color="red" font_family="Arial" angle="299.358">
+					<from>Workload</from>
+					<to>excess_work_effect_on_productivity</to>
+				</connector>
+				<connector uid="64" color="red" font_family="Arial" angle="315">
+					<from>normal_workload</from>
+					<to>excess_work_effect_on_productivity</to>
+				</connector>
+				<connector uid="65" color="red" font_family="Arial" angle="122.005">
+					<from>productivity</from>
+					<to>working_down</to>
+				</connector>
+				<connector uid="66" color="red" font_family="Arial" angle="296.565">
+					<from>Level_of_Stress_1</from>
+					<to>effect_of_stress_on_decompression_1</to>
+				</connector>
+				<connector uid="67" color="red" font_family="Arial" angle="161.565">
+					<from>normal_time_to_decompress</from>
+					<to>actual_time_to_decompress</to>
+				</connector>
+				<connector uid="68" color="red" font_family="Arial" angle="344.745">
+					<from>Level_of_Stress</from>
+					<to>decompressing</to>
+				</connector>
+				<connector uid="69" color="red" font_family="Arial" angle="83.6598">
+					<from>time_to_adjust_effect</from>
+					<to>adjust_vacation_effect</to>
+				</connector>
+				<connector uid="70" color="red" font_family="Arial" angle="234.462">
+					<from>time_working_before_vacation</from>
+					<to>vacation</to>
+				</connector>
+				<connector uid="71" color="red" font_family="Arial" angle="344.745">
+					<from>Level_of_Stress_1</from>
+					<to>decompressing_1</to>
+				</connector>
+				<connector uid="72" color="red" font_family="Arial" angle="143.973">
+					<from>Vacation_Effect_on_Decompression</from>
+					<to>adjust_vacation_effect</to>
+				</connector>
+				<connector uid="73" color="red" font_family="Arial" angle="96.3402">
+					<from>vacation</from>
+					<to>desired_effect_from_vacation</to>
+				</connector>
+				<connector uid="74" color="red" font_family="Arial" angle="206.565">
+					<from>effect_of_stress_on_building_stress</from>
+					<to>accumulating_stress</to>
+				</connector>
+				<connector uid="75" color="red" font_family="Arial" angle="173.66">
+					<from>normal_productivity</from>
+					<to>productivity</to>
+				</connector>
+				<connector uid="76" color="red" font_family="Arial" angle="77.4712">
+					<from>normal_workload_1</from>
+					<to>piling_up_1</to>
+				</connector>
+				<connector uid="77" color="red" font_family="Arial" angle="63.4349">
+					<from>normal_stress_1</from>
+					<to>actual_stress_1</to>
+				</connector>
+				<connector uid="78" color="red" font_family="Arial" angle="54.4623">
+					<from>decompressing</from>
+					<to>maximum_stress_change</to>
+				</connector>
+				<connector uid="79" color="red" font_family="Arial" angle="153.435">
+					<from>actual_time_to_decompress_1</from>
+					<to>decompressing_1</to>
+				</connector>
+				<connector uid="80" color="red" font_family="Arial" angle="266.634">
+					<from>Level_of_Stress_1</from>
+					<to>stress_effect_on_productivity_1</to>
+				</connector>
+				<connector uid="81" color="red" font_family="Arial" angle="54.4623">
+					<from>
+						<alias uid="82"/>
+					</from>
+					<to>excess_work_effect_on_stress_1</to>
+				</connector>
+				<connector uid="83" color="red" font_family="Arial" angle="333.435">
+					<from>length_of_vacation</from>
+					<to>update_vacation_start</to>
+				</connector>
+				<connector uid="84" color="red" font_family="Arial" angle="254.055">
+					<from>vacation</from>
+					<to>accumulating_stress</to>
+				</connector>
+				<connector uid="85" color="red" font_family="Arial" angle="206.565">
+					<from>
+						<alias uid="86"/>
+					</from>
+					<to>normal_productivity_1</to>
+				</connector>
+				<connector uid="87" color="red" font_family="Arial" angle="143.973">
+					<from>Vacation_Effect_on_Decompression_1</from>
+					<to>adjust_vacation_effect_1</to>
+				</connector>
+				<connector uid="88" color="red" font_family="Arial" angle="116.565">
+					<from>number_of_assignments_added_1</from>
+					<to>added_assignments_1</to>
+				</connector>
+				<connector uid="89" color="red" font_family="Arial" angle="90">
+					<from>number_of_added_assignments</from>
+					<to>added_assignments</to>
+				</connector>
+				<connector uid="90" color="red" font_family="Arial" angle="302.905">
+					<from>Level_of_Stress</from>
+					<to>effect_of_stress_on_decompression</to>
+				</connector>
+				<connector uid="91" color="red" font_family="Arial" angle="32.0054">
+					<from>excess_work_effect_on_productivity</from>
+					<to>productivity</to>
+				</connector>
+				<connector uid="92" color="red" font_family="Arial" angle="180">
+					<from>normal_productivity_1</from>
+					<to>productivity_1</to>
+				</connector>
+				<connector uid="93" color="red" font_family="Arial" angle="156.038">
+					<from>stress_upper_limit</from>
+					<to>maximum_stress_change</to>
+				</connector>
+				<connector uid="94" color="red" font_family="Arial" angle="333.435">
+					<from>
+						<alias uid="95"/>
+					</from>
+					<to>working_down</to>
+				</connector>
+				<connector uid="96" color="red" font_family="Arial" angle="32.0054">
+					<from>
+						<alias uid="97"/>
+					</from>
+					<to>accumulate_vacation_weeks_1</to>
+				</connector>
+				<connector uid="98" color="red" font_family="Arial" angle="50.1944">
+					<from>Workload_1</from>
+					<to>excess_work_effect_on_stress_1</to>
+				</connector>
+				<connector uid="99" color="red" font_family="Arial" angle="54.4623">
+					<from>decompressing_1</from>
+					<to>maximum_stress_change_1</to>
+				</connector>
+				<connector uid="100" color="red" font_family="Arial" angle="32.0054">
+					<from>excess_work_effect_on_productivity_1</from>
+					<to>productivity_1</to>
+				</connector>
+				<connector uid="101" color="red" font_family="Arial" angle="333.435">
+					<from>length_of_vacation_1</from>
+					<to>update_vacation_start_1</to>
+				</connector>
+				<connector uid="102" color="red" font_family="Arial" angle="167.471">
+					<from>excess_work_effect_on_stress</from>
+					<to>actual_stress</to>
+				</connector>
+				<connector uid="103" color="red" font_family="Arial" angle="299.358">
+					<from>Workload_1</from>
+					<to>excess_work_effect_on_productivity_1</to>
+				</connector>
+				<connector uid="104" color="red" font_family="Arial" angle="57.9946">
+					<from>effect_of_stress_on_decompression_1</from>
+					<to>actual_time_to_decompress_1</to>
+				</connector>
+				<stacked_container uid="105" x="610" y="542" width="667" height="381" minimized="true">
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="610" y="542" width="667" height="381" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="title" left_axis_multi_scale="false" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<plot color="blue" pen_width="1" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Level_of_Stress"/>
+						</plot>
+						<plot color="red" pen_width="1" index="1" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Workload"/>
+						</plot>
+						<plot color="fuchsia" pen_width="1" index="2" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="productivity"/>
+						</plot>
+						<plot color="#008F44" pen_width="1" index="3" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="vacation"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<stacked_container uid="106" x="527" y="431" width="475" height="538">
+					<table background="#E0E0E0" font_family="Arial" font_size="9pt" orientation="vertical" column_width="59" interval="DT" report_balances="begining" report_flows="summed" header_text_align="center" header_font_size="12pt" x="527" y="431" width="475" height="538" title="title">
+						<item type="time"/>
+						<item>
+							<format precision="0.01" scale_by="1" delimit_000s="true"/>
+							<entity name="stress_effect_on_productivity"/>
+						</item>
+						<item>
+							<format precision="0.01" scale_by="1" delimit_000s="true"/>
+							<entity name="excess_work_effect_on_productivity"/>
+						</item>
+						<item>
+							<format precision="0.01" scale_by="1" delimit_000s="true"/>
+							<entity name="Level_of_Stress"/>
+						</item>
+					</table>
+				</stacked_container>
+				<stock font_family="Arial" x="386" y="248" name="Vacation Effect on\nDecompression"/>
+				<flow font_family="Arial" x="279.25" y="246" name="adjust vacation\neffect">
+					<pts>
+						<pt x="183" y="246"/>
+						<pt x="363.5" y="246"/>
+					</pts>
+				</flow>
+				<aux font_family="Arial" x="137" y="293" name="vacation"/>
+				<aux font_family="Arial" x="221" y="184" name="desired effect\nfrom vacation"/>
+				<aux font_family="Arial" x="313" y="298" name="time to adjust\neffect"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="86" x="96" y="161" name="time working\nbefore vacation"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="86" x="269" y="62" name="length of\nvacation"/>
+				<stock color="red" font_color="red" font_family="Arial" x="361" y="126" name="Last Vacation\nStart"/>
+				<flow color="blue" font_family="Arial" label_angle="253" x="269.75" y="122" name="update\nvacation start">
+					<pts>
+						<pt x="201" y="122"/>
+						<pt x="338.5" y="122"/>
+					</pts>
+				</flow>
+				<stock color="red" font_color="red" font_family="Arial" x="236" y="444" name="Level of Stress"/>
+				<flow color="blue" font_family="Arial" label_side="top" label_angle="101" x="157.75" y="440" name="accumulating stress">
+					<pts>
+						<pt x="102" y="440"/>
+						<pt x="213.5" y="440"/>
+					</pts>
+				</flow>
+				<flow font_family="Arial" x="302.75" y="440" name="decompressing">
+					<pts>
+						<pt x="258.5" y="440"/>
+						<pt x="371" y="440"/>
+					</pts>
+				</flow>
+				<stock color="red" font_color="red" font_family="Arial" x="225" y="654" name="Workload"/>
+				<flow font_family="Arial" x="160.25" y="648" name="piling up">
+					<pts>
+						<pt x="118" y="648"/>
+						<pt x="202.5" y="648"/>
+					</pts>
+				</flow>
+				<flow font_family="Arial" x="275.25" y="651" name="working down">
+					<pts>
+						<pt x="247.5" y="651"/>
+						<pt x="327" y="651"/>
+					</pts>
+				</flow>
+				<aux color="blue" font_family="Arial" label_side="top" x="477" y="454" name="normal time to\ndecompress"/>
+				<aux color="blue" font_family="Arial" label_side="left" x="61" y="509" name="normal\nstress"/>
+				<aux font_family="Arial" x="318" y="489" name="effect of stress\non decompression"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="77" x="404" y="677" name="normal\nproductivity"/>
+				<aux font_family="Arial" x="188" y="697" name="added assignments"/>
+				<aux color="blue" font_family="Arial" label_angle="225" x="114" y="719" name="normal\nworkload"/>
+				<aux font_family="Arial" x="195" y="504" name="excess work effect\non stress"/>
+				<aux font_family="Arial" x="339" y="692" name="productivity"/>
+				<aux color="red" font_color="red" font_family="Arial" x="325" y="554" name="stress effect\non productivity"/>
+				<aux color="red" font_color="red" font_family="Arial" x="393" y="488" name="actual time to\ndecompress"/>
+				<aux font_family="Arial" x="234" y="737" name="number of added assignments"/>
+				<aux font_family="Arial" x="338" y="766" name="excess work effect on productivity"/>
+				<aux font_family="Arial" x="130" y="467" name="actual\nstress"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="423" y="403" name="stress upper limit"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="319" y="400" name="maximum\nstress change"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="199" y="387" name="effect of stress\non building stress"/>
+				<aux font_family="Arial" x="215" y="308" name="vacation switch"/>
+				<stock font_family="Arial" x="697" y="283" name="total weeks\nvacation taken"/>
+				<flow font_family="Arial" x="622.25" y="282" name="accumulate\nvacation weeks">
+					<pts>
+						<pt x="570" y="282"/>
+						<pt x="674.5" y="282"/>
+					</pts>
+				</flow>
+				<stock font_family="Arial" x="1328" y="402" name="Vacation Effect on\nDecompression 1"/>
+				<flow font_family="Arial" x="1221.25" y="400" name="adjust vacation\neffect 1">
+					<pts>
+						<pt x="1125" y="400"/>
+						<pt x="1305.5" y="400"/>
+					</pts>
+				</flow>
+				<aux font_family="Arial" x="1079" y="447" name="vacation 1"/>
+				<aux font_family="Arial" x="1163" y="338" name="desired effect\nfrom vacation 1"/>
+				<aux font_family="Arial" x="1255" y="452" name="time to adjust\neffect 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="86" x="1038" y="315" name="time working\nbefore vacation 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="86" x="1211" y="216" name="length of\nvacation 1"/>
+				<stock color="red" font_color="red" font_family="Arial" x="1303" y="280" name="Last Vacation\nStart 1"/>
+				<flow color="blue" font_family="Arial" label_angle="253" x="1211.75" y="276" name="update\nvacation start 1">
+					<pts>
+						<pt x="1143" y="276"/>
+						<pt x="1280.5" y="276"/>
+					</pts>
+				</flow>
+				<stock color="red" font_color="red" font_family="Arial" x="1178" y="598" name="Level of Stress 1"/>
+				<flow color="blue" font_family="Arial" label_side="top" label_angle="101" x="1099.75" y="594" name="accumulating stress 1">
+					<pts>
+						<pt x="1044" y="594"/>
+						<pt x="1155.5" y="594"/>
+					</pts>
+				</flow>
+				<flow font_family="Arial" x="1244.75" y="594" name="decompressing 1">
+					<pts>
+						<pt x="1200.5" y="594"/>
+						<pt x="1313" y="594"/>
+					</pts>
+				</flow>
+				<stock color="red" font_color="red" font_family="Arial" x="1167" y="808" name="Workload 1"/>
+				<flow font_family="Arial" x="1102.25" y="802" name="piling up 1">
+					<pts>
+						<pt x="1060" y="802"/>
+						<pt x="1144.5" y="802"/>
+					</pts>
+				</flow>
+				<flow font_family="Arial" x="1217.25" y="805" name="working down 1">
+					<pts>
+						<pt x="1189.5" y="805"/>
+						<pt x="1269" y="805"/>
+					</pts>
+				</flow>
+				<aux font_family="Arial" x="1425" y="583" name="normal time to\ndecompress 1"/>
+				<aux color="blue" font_family="Arial" label_side="left" x="1003" y="663" name="normal\nstress 1"/>
+				<aux font_family="Arial" x="1291" y="650" name="effect of stress\non decompression 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" label_angle="77" x="1337" y="823" name="normal\nproductivity 1"/>
+				<aux font_family="Arial" x="1130" y="851" name="added assignments 1"/>
+				<aux color="blue" font_family="Arial" label_angle="225" x="1045" y="852" name="normal\nworkload 1"/>
+				<aux font_family="Arial" x="1137" y="658" name="excess work effect\non stress 1"/>
+				<aux font_family="Arial" x="1281" y="846" name="productivity 1"/>
+				<aux color="red" font_color="red" font_family="Arial" x="1255" y="710" name="stress effect\non productivity 1"/>
+				<aux color="red" font_color="red" font_family="Arial" x="1348" y="617" name="actual time to\ndecompress 1"/>
+				<aux font_family="Arial" x="1176" y="891" name="number of assignments added 1"/>
+				<aux font_family="Arial" x="1280" y="920" name="excess work effect on productivity 1"/>
+				<aux font_family="Arial" x="1072" y="621" name="actual\nstress 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="1365" y="557" name="stress upper limit 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="1261" y="554" name="maximum stress change 1"/>
+				<aux color="blue" font_family="Arial" label_side="top" x="1141" y="541" name="effect of stress\non building stress 1"/>
+				<aux font_family="Arial" x="1157" y="462" name="vacation switch 1"/>
+				<stock font_family="Arial" x="1639" y="437" name="total weeks\nvacation taken 1"/>
+				<flow font_family="Arial" x="1564.25" y="436" name="accumulate\nvacation weeks 1">
+					<pts>
+						<pt x="1512" y="436"/>
+						<pt x="1616.5" y="436"/>
+					</pts>
+				</flow>
+				<group locked="true" font_family="Arial" x="932" y="157" width="772" height="867" name="Final Page">
+					<item uid="48"/>
+					<item uid="28"/>
+					<item uid="55"/>
+					<item uid="42"/>
+					<item uid="59"/>
+					<item uid="24"/>
+					<item uid="58"/>
+					<item uid="36"/>
+					<item uid="53"/>
+					<item uid="101"/>
+					<item uid="54"/>
+					<item uid="51"/>
+					<item uid="50"/>
+					<item uid="17"/>
+					<item uid="56"/>
+					<item uid="97"/>
+					<item uid="49"/>
+					<item uid="52"/>
+					<item uid="18"/>
+					<item uid="31"/>
+					<item uid="34"/>
+					<item uid="44"/>
+					<item uid="6"/>
+					<item uid="43"/>
+					<item uid="66"/>
+					<item uid="32"/>
+					<item uid="71"/>
+					<item uid="81"/>
+					<item uid="87"/>
+					<item uid="76"/>
+					<item uid="27"/>
+					<item uid="77"/>
+					<item uid="98"/>
+					<item uid="86"/>
+					<item uid="4"/>
+					<item uid="104"/>
+					<item uid="10"/>
+					<item uid="82"/>
+					<item uid="41"/>
+					<item uid="99"/>
+					<item uid="46"/>
+					<item uid="79"/>
+					<item uid="45"/>
+					<item uid="85"/>
+					<item uid="96"/>
+					<item uid="35"/>
+					<item uid="29"/>
+					<item uid="103"/>
+					<item uid="88"/>
+					<item uid="92"/>
+					<item uid="100"/>
+					<item uid="80"/>
+				</group>
+				<alias color="red" font_style="italic" font_color="red" font_family="Arial" uid="40" x="23.5" y="263.5" width="45" height="35">
+					<of>Last_Vacation_Start</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="3" x="195" y="63" width="18" height="18">
+					<of>vacation</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="97" x="1411" y="414" width="18" height="18">
+					<of>vacation_1</of>
+				</alias>
+				<alias color="blue" font_style="italic" font_family="Arial" uid="86" x="1386" y="812" width="18" height="18">
+					<of>normal_workload_1</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" label_side="bottom" label_angle="267" uid="44" x="1358.5" y="678.5" width="45" height="35">
+					<of>Vacation_Effect_on_Decompression_1</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="59" x="1122" y="213" width="18" height="18">
+					<of>vacation_1</of>
+				</alias>
+				<alias color="red" font_style="italic" font_color="red" font_family="Arial" uid="56" x="965.5" y="417.5" width="45" height="35">
+					<of>Last_Vacation_Start_1</of>
+				</alias>
+				<alias color="blue" font_style="italic" font_family="Arial" uid="82" x="1047" y="689" width="18" height="18">
+					<of>normal_workload_1</of>
+				</alias>
+				<alias color="red" font_style="italic" font_color="red" font_family="Arial" uid="36" x="1215" y="752" width="18" height="18">
+					<of>vacation_1</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="51" x="999" y="746" width="18" height="18">
+					<of>vacation_1</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="23" x="57" y="592" width="18" height="18">
+					<of>vacation</of>
+				</alias>
+				<alias color="red" font_style="italic" font_color="red" font_family="Arial" uid="95" x="273" y="592" width="18" height="18">
+					<of>vacation</of>
+				</alias>
+				<alias color="blue" font_style="italic" font_family="Arial" uid="9" x="135" y="531" width="18" height="18">
+					<of>normal_workload</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" label_side="bottom" uid="16" x="33.5" y="336.5" width="45" height="35">
+					<of>total_weeks_vacation_taken</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="32" x="975.5" y="509.5" width="45" height="35">
+					<of>total_weeks_vacation_taken_1</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" label_side="bottom" label_angle="267" uid="12" x="427.5" y="542.5" width="45" height="35">
+					<of>Vacation_Effect_on_Decompression</of>
+				</alias>
+				<alias color="blue" font_style="italic" font_family="Arial" uid="38" x="453" y="666" width="18" height="18">
+					<of>normal_workload</of>
+				</alias>
+				<alias font_style="italic" font_family="Arial" uid="61" x="469" y="260" width="18" height="18">
+					<of>vacation</of>
+				</alias>
+				<isee:pad_icon x="818" y="273" width="26" color="#008F44" height="22" label_side="bottom" label="Graph 2" type="graph" icon_of="104"/>
+				<isee:pad_icon x="610" y="542" width="26" color="#008F44" height="22" label_side="bottom" label="Table 1" type="table" icon_of="105"/>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" zoom="140" home_view="true" type="interface">
+				<style/>
+				<button color="white" background="#0CA0FF" font_weight="bold" font_family="Arial" font_size="14pt" corner_radius="6" label="Start" uid="107" x="682" y="470" width="65" height="34">
+					<actions>
+						<action target="interface:1">navigate</action>
+					</actions>
+				</button>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" zoom="140" type="interface">
+				<style/>
+				<button color="white" background="#0CA0FF" font_weight="bold" font_family="Arial" corner_radius="6" label="All Work, No Play" uid="110" x="150" y="396" width="144" height="43">
+					<actions>
+						<action>restore_all</action>
+						<action target="next_page">navigate</action>
+					</actions>
+				</button>
+				<button color="black" font_family="Arial" transparent="true" corner_radius="0" label="" uid="111" x="593" y="460" width="161" height="55">
+					<actions>
+						<action url="www.iseesystems.com">link</action>
+						<action target="home_page">navigate</action>
+					</actions>
+				</button>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" type="interface">
+				<style/>
+				<stacked_container uid="113" x="30.5" y="142" width="492" height="282">
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="276.5" y="283" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title=" " left_axis_multi_scale="false" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<plot color="blue" pen_width="3" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Level_of_Stress"/>
+						</plot>
+						<plot color="red" pen_width="3" index="1" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Workload"/>
+						</plot>
+						<plot color="fuchsia" pen_width="3" index="2" show_y_axis="true">
+							<format precision="0.01" scale_by="1"/>
+							<entity name="productivity"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<text_box color="black" font_weight="bold" font_family="Arial" font_size="16pt" padding="1" appearance="transparent" uid="114" x="39" y="20" width="269" height="82">Click Run to see what happens with no vacation and a consistent workload.</text_box>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Run" uid="115" x="73" y="469" width="65" height="34">
+					<actions>
+						<action>run_to_end</action>
+					</actions>
+				</button>
+				<isee:annotation color="white" background="#30CB32" font_family="@Malgun Gothic" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_family="Arial" popup_font_size="16pt" launcher_label="Debrief" show_by_default="false" hide_launcher="false" uid="116" x="158" y="470" width="60" height="32">
+					<popup hide_when_editing="true" x="66" y="193" width="315" height="258">
+						<text>Observe the effect stress has on productivity.
+
+Even though the number of assignments stays constant, stress will begin to build over time as there is no method of disspation.  As the stress level increases, your productivity level decreases causing a higher workload and creating a vicious cycle.</text>
+					</popup>
+				</isee:annotation>
+				<isee:annotation color="white" font_style="italic" font_family="Arial" font_size="10pt" corner_radius="6" popup_font_style="normal" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="16pt" launcher_label="* Assumptions" show_by_default="false" hide_launcher="false" uid="117" x="233" y="105" width="87" height="24">
+					<popup hide_when_editing="true" x="123.5" y="130" width="311" height="158">
+						<text>The model holds the following assumptions:
+- A 52 week year, with 40-hour work weeks 
+- Weekends and holidays off
+- The maximum number of vacation weeks allowed is 4.</text>
+					</popup>
+				</isee:annotation>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="0" label="" uid="118" x="726" y="15" width="28" height="25">
+					<actions>
+						<action target="interface:1">navigate</action>
+					</actions>
+					<image width="25" height="23" size_to_parent="false">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAIAAABxgXNEAAAFfElEQVQ4jTWSa2zeZRmHf/f9PP/Te+hpXYGtMjZGK03YouiqjjGGQzZFRxwaBTUmSqImGhLUBDFjEr6aqB80ymCAy6KCDIVStnawZXNNcZBOYIKaDjb7dj2uh73v+z88z337YfHb9elKruQiLQqxqoARglO1ASmQA1RvxNESipVIjEMzS8NybCAoch9YBw6854xgrQ8xB+0CMTyrUgFK89yFwRJjxiBN4OKolNl2lzxxcuxbzxw4+sFkAYgA1hqgyNOCFImFUcnyFSAAFsSG2AES2clmemD4yHw969/Qf3fftd7gj6++/eujR89dnnv3PxMTWz5x786tgS9iE1TC2AHLkoZsosCiEARsoUibzgUcW15abPzhub9IUl7d3Ts73/30yLEnBgZ7um/4yrbbT5w+te/w4HSR3fe5LVeBywILJBx6iGpBXhHEFowwtIZgFUuTs13ltr6Pf2r9NWsPnhn75Z8Obr5540+++rVrqqW+67qePjy4/6XDdbP8ja07+5IS6s5WLBipZEkcAjB7f/qIt8QAC7zjVdf39N540ztjZ/cOPPWdnV/80e57T595fd+fn113/frbbrl9+tLS0PFh8tyzpqelbACogq0tAAs2ex/d48gTmAlxW7Jgw6HR0YGhI/ds33L3rXe+efbcvldPHB9/f/zC5A2rV+/eublxyf/9jTPnZi5e23tjNWb2ZA0pxIDNIw8/JIYVSJvZe7Wpg0cPvzw6svUzd/5i62dfePP0z44Mna1d1mRlbepibfydtUn8+Tu21y41X3nj1L8n3+++qvtDHRX2MAIwmR88+lglE/bm0AfzP37uyNtvnf/hF3Z9b8emrw+P7R86PjM1lyShutSBaylefvd8b7Xjvts2t1TLj//ttTMXF9dXe1eUw8WYyoB5eM8DYVA68c+Jx/Y9Lnnjofu/ueljH/7doYEXRt+am5nhICAi570NAmbOi+LU2dfbq+333PrJnhVrToyOjIz/Y1VX18aOFWzALWzPzy7sH3ipXl/+7u4dvZ3VQ0Mnnzw5Nl2rgSiKIhER75mZmYloHvqr4RefHz716et6v3/XrgsL/3322KC5DAAWkhS8vGHDulu23XxH/0eefOb537zy2nRruy2XiMipeCgFthCvqmCKtTpxaX7PiweaCzP3f2kXonx2eiqtIAYo8+oYBTIgeq+29ODPfzsyWfMtEbmIiESEiIwx3nsVAVEpRaNVkM9uWNn5+wcevKmrvZ6rRlQFGIwQ0oqiFS7PZBYk5bIVUueMMcysqs45AEEYMrO2J9wkQ21FUpo3jhQVppIAAFO9aQFojMxWIhuUoJYtt5o4YmvIMBkGVFXYGjA1s0UFt6BaKcolU4IUoMxwAYCDsBDvoRYEzRusC0Fo08sCIEtTn6ZBENgwBOCck6JAFKpFw2vYoJVpADUwro4GAAvT4lkFTknVSFkT20x9EnqxkZVt69a2hpKVmBu8VMex6YmkkTcNq00liZeoAdsGRDHKACw8FELMJiBPlHlkgKhGkvZ2dXx7x/a+Ve1piHRZ/nV+4cLgX8ezeTEhwStZB1IBgdhceYIQMDmogHOh1HkhApNQXg5l45qu9W2JGpEOWw5bUNQLNgCJ0wIQYhhAmAAADID+D6rKEFaPolkYX0eu5AHvXAqAE25QAXHIMjQaKLxT8QBA4q4oRBSsUAJMXnSEQSfyOF1Eswg9smYBZWtjVTTraUuclCQta94ZcFdkNWsqAALzlUbDHgDYCFa3tdzV/9H+wruG1D2tba90mgipUCWwGa5W/vKmTdO9cxZRiaPu1uTq1pJoAQQAAJCKpgQLWA8AU3nOSRh4GIUoWgkgyY2EnuF5OoBoAR9YhRbSXmZGzrDwDIP/AXKdxGk+FmzNAAAAAElFTkSuQmCC</image>
+				</button>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Clear All" uid="119" x="361" y="470" width="65" height="34">
+					<actions>
+						<action>restore_all</action>
+					</actions>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Next" uid="120" x="691" y="470" width="65" height="34">
+					<actions>
+						<action>restore_all</action>
+						<action target="next_page">navigate</action>
+					</actions>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" icon_side="top" label="Back" uid="121" x="15" y="469" width="51" height="34">
+					<actions>
+						<action target="previous_page">navigate</action>
+					</actions>
+				</button>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" zoom="140" type="interface">
+				<style/>
+				<slider color="#009847" font_color="#009847" font_family="Arial" uid="123" x="45.5" y="105.5" width="197" height="43" increment="1" min="1" max="30" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="number_of_added_assignments"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<stacked_container uid="124" x="35" y="161" width="492" height="282" visible_index="1">
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="281" y="302" comparative="true" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="Level of Stress" left_axis_multi_scale="true" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<isee:comparative_list next_run_active="true">
+							<isee:data name="Run 1"/>
+							<isee:data name="Run 2"/>
+						</isee:comparative_list>
+						<plot color="blue" pen_width="3" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Level_of_Stress"/>
+						</plot>
+					</graph>
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="281" y="302" comparative="true" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="Productivity" left_axis_multi_scale="true" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<isee:comparative_list next_run_active="true">
+							<isee:data name="Run 1"/>
+							<isee:data name="Run 2"/>
+						</isee:comparative_list>
+						<plot color="blue" pen_width="3" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="productivity"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<text_box color="black" font_weight="bold" font_family="Arial" font_size="16pt" padding="1" appearance="transparent" uid="125" x="27" y="18" width="461" height="35">What happens when you are asked do an extra project?</text_box>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Run" uid="126" x="90" y="469" width="65" height="34">
+					<actions>
+						<action>run_to_end</action>
+					</actions>
+				</button>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Clear All" uid="127" x="387" y="470" width="72" height="34">
+					<actions>
+						<action>restore_all</action>
+					</actions>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="0" label="" uid="128" x="731" y="10" width="27" height="25">
+					<actions>
+						<action target="interface:1">navigate</action>
+					</actions>
+					<image width="25" height="23" size_to_parent="false">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAIAAABxgXNEAAAFfElEQVQ4jTWSa2zeZRmHf/f9PP/Te+hpXYGtMjZGK03YouiqjjGGQzZFRxwaBTUmSqImGhLUBDFjEr6aqB80ymCAy6KCDIVStnawZXNNcZBOYIKaDjb7dj2uh73v+z88z337YfHb9elKruQiLQqxqoARglO1ASmQA1RvxNESipVIjEMzS8NybCAoch9YBw6854xgrQ8xB+0CMTyrUgFK89yFwRJjxiBN4OKolNl2lzxxcuxbzxw4+sFkAYgA1hqgyNOCFImFUcnyFSAAFsSG2AES2clmemD4yHw969/Qf3fftd7gj6++/eujR89dnnv3PxMTWz5x786tgS9iE1TC2AHLkoZsosCiEARsoUibzgUcW15abPzhub9IUl7d3Ts73/30yLEnBgZ7um/4yrbbT5w+te/w4HSR3fe5LVeBywILJBx6iGpBXhHEFowwtIZgFUuTs13ltr6Pf2r9NWsPnhn75Z8Obr5540+++rVrqqW+67qePjy4/6XDdbP8ja07+5IS6s5WLBipZEkcAjB7f/qIt8QAC7zjVdf39N540ztjZ/cOPPWdnV/80e57T595fd+fn113/frbbrl9+tLS0PFh8tyzpqelbACogq0tAAs2ex/d48gTmAlxW7Jgw6HR0YGhI/ds33L3rXe+efbcvldPHB9/f/zC5A2rV+/eublxyf/9jTPnZi5e23tjNWb2ZA0pxIDNIw8/JIYVSJvZe7Wpg0cPvzw6svUzd/5i62dfePP0z44Mna1d1mRlbepibfydtUn8+Tu21y41X3nj1L8n3+++qvtDHRX2MAIwmR88+lglE/bm0AfzP37uyNtvnf/hF3Z9b8emrw+P7R86PjM1lyShutSBaylefvd8b7Xjvts2t1TLj//ttTMXF9dXe1eUw8WYyoB5eM8DYVA68c+Jx/Y9Lnnjofu/ueljH/7doYEXRt+am5nhICAi570NAmbOi+LU2dfbq+333PrJnhVrToyOjIz/Y1VX18aOFWzALWzPzy7sH3ipXl/+7u4dvZ3VQ0Mnnzw5Nl2rgSiKIhER75mZmYloHvqr4RefHz716et6v3/XrgsL/3322KC5DAAWkhS8vGHDulu23XxH/0eefOb537zy2nRruy2XiMipeCgFthCvqmCKtTpxaX7PiweaCzP3f2kXonx2eiqtIAYo8+oYBTIgeq+29ODPfzsyWfMtEbmIiESEiIwx3nsVAVEpRaNVkM9uWNn5+wcevKmrvZ6rRlQFGIwQ0oqiFS7PZBYk5bIVUueMMcysqs45AEEYMrO2J9wkQ21FUpo3jhQVppIAAFO9aQFojMxWIhuUoJYtt5o4YmvIMBkGVFXYGjA1s0UFt6BaKcolU4IUoMxwAYCDsBDvoRYEzRusC0Fo08sCIEtTn6ZBENgwBOCck6JAFKpFw2vYoJVpADUwro4GAAvT4lkFTknVSFkT20x9EnqxkZVt69a2hpKVmBu8VMex6YmkkTcNq00liZeoAdsGRDHKACw8FELMJiBPlHlkgKhGkvZ2dXx7x/a+Ve1piHRZ/nV+4cLgX8ezeTEhwStZB1IBgdhceYIQMDmogHOh1HkhApNQXg5l45qu9W2JGpEOWw5bUNQLNgCJ0wIQYhhAmAAADID+D6rKEFaPolkYX0eu5AHvXAqAE25QAXHIMjQaKLxT8QBA4q4oRBSsUAJMXnSEQSfyOF1Eswg9smYBZWtjVTTraUuclCQta94ZcFdkNWsqAALzlUbDHgDYCFa3tdzV/9H+wruG1D2tba90mgipUCWwGa5W/vKmTdO9cxZRiaPu1uTq1pJoAQQAAJCKpgQLWA8AU3nOSRh4GIUoWgkgyY2EnuF5OoBoAR9YhRbSXmZGzrDwDIP/AXKdxGk+FmzNAAAAAElFTkSuQmCC</image>
+				</button>
+				<isee:annotation color="white" background="#30CB32" font_family="Arial" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="16pt" launcher_label="Debrief" show_by_default="false" hide_launcher="false" uid="129" x="177" y="469" width="65" height="34">
+					<popup hide_when_editing="true" x="302.5" y="427" width="241" height="92">
+						<text>With added assignments, productivity declines and stress increases much earlier in the year.</text>
+					</popup>
+				</isee:annotation>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Next" uid="130" x="699" y="470" width="60" height="34">
+					<actions>
+						<action>restore_all</action>
+						<action target="next_page">navigate</action>
+					</actions>
+				</button>
+				<isee:annotation color="white" background="blue" font_family="Arial" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="13pt" launcher_label="Instructions" show_by_default="false" hide_launcher="false" uid="131" x="87" y="51" width="103" height="26">
+					<popup hide_when_editing="true" x="207.5" y="64" width="254" height="194">
+						<text>Click Run to see the levels of stress and productivity without added assignments. Stress level is on page 1 of the graph and Productivity is on page 2.  Click on the lower left corner of the graph pad to change pages.
+
+Adjust the number of added assignments, click Run, and see what happens to stress level and productivity.</text>
+					</popup>
+				</isee:annotation>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Back" uid="132" x="16" y="469.5" width="57" height="33">
+					<actions>
+						<action target="previous_page">navigate</action>
+					</actions>
+				</button>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" type="interface">
+				<style/>
+				<switch color="#8F0098" font_color="#8F0098" font_family="Arial" label_side="bottom" uid="134" x="85" y="154" width="32" height="60" isee:navigate_to="false" show_name="true">
+					<entity name="vacation_switch"/>
+					<reset_to after="never">0</reset_to>
+				</switch>
+				<slider color="#7D30CB" font_color="#7D30CB" font_family="Arial" uid="135" x="20.5" y="288.5" width="197" height="43" increment="1" min="1" max="4" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="length_of_vacation"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<slider color="#7D30CB" font_color="#7D30CB" font_family="Arial" uid="136" x="21.5" y="375.5" width="197" height="43" increment="1" min="1" max="52" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="time_working_before_vacation"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<stacked_container uid="137" x="254" y="169" width="492" height="282">
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="500" y="310" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title=" " left_axis_multi_scale="false" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<plot color="blue" pen_width="3" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Level_of_Stress"/>
+						</plot>
+						<plot color="red" pen_width="3" index="1" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Workload"/>
+						</plot>
+						<plot color="fuchsia" pen_width="3" index="2" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="productivity"/>
+						</plot>
+						<plot color="#008F44" pen_width="3" index="3" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="vacation"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<button color="white" font_family="Arial" corner_radius="0" label="" uid="138" x="279" y="468.5" width="44" height="39">
+					<actions>
+						<action>run_to_end</action>
+					</actions>
+					</button>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Clear All" uid="139" x="505" y="471" width="65" height="34">
+					<actions>
+						<action>restore_all</action>
+					</actions>
+				</button>
+				<isee:annotation color="white" background="#30CB32" font_family="Arial" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="16pt" launcher_label="Debrief" show_by_default="false" hide_launcher="false" uid="140" x="341" y="471" width="65" height="34">
+					<popup hide_when_editing="true" x="486.5" y="397" width="225" height="100">
+						<text>Notice how taking a vacation lowers the stress level and increases productivity.</text>
+					</popup>
+				</isee:annotation>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="0" label="" uid="141" x="734" y="10" width="27" height="25">
+					<actions>
+						<action target="interface:1">navigate</action>
+					</actions>
+					<image width="25" height="23" size_to_parent="false">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAIAAABxgXNEAAAFfElEQVQ4jTWSa2zeZRmHf/f9PP/Te+hpXYGtMjZGK03YouiqjjGGQzZFRxwaBTUmSqImGhLUBDFjEr6aqB80ymCAy6KCDIVStnawZXNNcZBOYIKaDjb7dj2uh73v+z88z337YfHb9elKruQiLQqxqoARglO1ASmQA1RvxNESipVIjEMzS8NybCAoch9YBw6854xgrQ8xB+0CMTyrUgFK89yFwRJjxiBN4OKolNl2lzxxcuxbzxw4+sFkAYgA1hqgyNOCFImFUcnyFSAAFsSG2AES2clmemD4yHw969/Qf3fftd7gj6++/eujR89dnnv3PxMTWz5x786tgS9iE1TC2AHLkoZsosCiEARsoUibzgUcW15abPzhub9IUl7d3Ts73/30yLEnBgZ7um/4yrbbT5w+te/w4HSR3fe5LVeBywILJBx6iGpBXhHEFowwtIZgFUuTs13ltr6Pf2r9NWsPnhn75Z8Obr5540+++rVrqqW+67qePjy4/6XDdbP8ja07+5IS6s5WLBipZEkcAjB7f/qIt8QAC7zjVdf39N540ztjZ/cOPPWdnV/80e57T595fd+fn113/frbbrl9+tLS0PFh8tyzpqelbACogq0tAAs2ex/d48gTmAlxW7Jgw6HR0YGhI/ds33L3rXe+efbcvldPHB9/f/zC5A2rV+/eublxyf/9jTPnZi5e23tjNWb2ZA0pxIDNIw8/JIYVSJvZe7Wpg0cPvzw6svUzd/5i62dfePP0z44Mna1d1mRlbepibfydtUn8+Tu21y41X3nj1L8n3+++qvtDHRX2MAIwmR88+lglE/bm0AfzP37uyNtvnf/hF3Z9b8emrw+P7R86PjM1lyShutSBaylefvd8b7Xjvts2t1TLj//ttTMXF9dXe1eUw8WYyoB5eM8DYVA68c+Jx/Y9Lnnjofu/ueljH/7doYEXRt+am5nhICAi570NAmbOi+LU2dfbq+333PrJnhVrToyOjIz/Y1VX18aOFWzALWzPzy7sH3ipXl/+7u4dvZ3VQ0Mnnzw5Nl2rgSiKIhER75mZmYloHvqr4RefHz716et6v3/XrgsL/3322KC5DAAWkhS8vGHDulu23XxH/0eefOb537zy2nRruy2XiMipeCgFthCvqmCKtTpxaX7PiweaCzP3f2kXonx2eiqtIAYo8+oYBTIgeq+29ODPfzsyWfMtEbmIiESEiIwx3nsVAVEpRaNVkM9uWNn5+wcevKmrvZ6rRlQFGIwQ0oqiFS7PZBYk5bIVUueMMcysqs45AEEYMrO2J9wkQ21FUpo3jhQVppIAAFO9aQFojMxWIhuUoJYtt5o4YmvIMBkGVFXYGjA1s0UFt6BaKcolU4IUoMxwAYCDsBDvoRYEzRusC0Fo08sCIEtTn6ZBENgwBOCck6JAFKpFw2vYoJVpADUwro4GAAvT4lkFTknVSFkT20x9EnqxkZVt69a2hpKVmBu8VMex6YmkkTcNq00liZeoAdsGRDHKACw8FELMJiBPlHlkgKhGkvZ2dXx7x/a+Ve1piHRZ/nV+4cLgX8ezeTEhwStZB1IBgdhceYIQMDmogHOh1HkhApNQXg5l45qu9W2JGpEOWw5bUNQLNgCJ0wIQYhhAmAAADID+D6rKEFaPolkYX0eu5AHvXAqAE25QAXHIMjQaKLxT8QBA4q4oRBSsUAJMXnSEQSfyOF1Eswg9smYBZWtjVTTraUuclCQta94ZcFdkNWsqAALzlUbDHgDYCFa3tdzV/9H+wruG1D2tba90mgipUCWwGa5W/vKmTdO9cxZRiaPu1uTq1pJoAQQAAJCKpgQLWA8AU3nOSRh4GIUoWgkgyY2EnuF5OoBoAR9YhRbSXmZGzrDwDIP/AXKdxGk+FmzNAAAAAElFTkSuQmCC</image>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Next" uid="142" x="692" y="471" width="65" height="34">
+					<actions>
+						<action>restore_all</action>
+						<action target="next_page">navigate</action>
+					</actions>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Back" uid="143" x="16" y="471" width="48" height="35">
+					<actions>
+						<action target="previous_page">navigate</action>
+					</actions>
+				</button>
+			</view>
+			<view isee:show_pages="false" page_width="788" page_height="528" zoom="140" type="interface">
+				<style/>
+				<slider color="#7D30CB" font_color="#7D30CB" font_family="Arial" uid="145" x="14.5" y="262.5" width="197" height="43" increment="1" min="1" max="4" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="length_of_vacation_1"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<slider color="#7D30CB" font_color="#7D30CB" font_family="Arial" uid="146" x="11.5" y="367.5" width="197" height="43" increment="1" min="1" max="52" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="time_working_before_vacation_1"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<slider color="#009847" font_color="#009847" font_family="Arial" uid="147" x="226.5" y="139.5" width="197" height="43" increment="1" min="1" max="30" isee:navigate_to="false" show_name="true">
+					<format precision="1" scale_by="1"/>
+					<entity name="number_of_assignments_added_1"/>
+					<reset_to after="never">0</reset_to>
+				</slider>
+				<stacked_container uid="148" x="223" y="188" width="492" height="282">
+					<graph background="#FFFFC9" font_family="Arial" axis_label_font_size="9pt" x="469" y="329" type="time_series" isee:time_precision="1" isee:time_scale_by="1" show_grid="true" include_units_in_legend="false" plot_numbers="true" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title=" " left_axis_multi_scale="false" left_axis_auto_scale="true" right_axis_multi_scale="true" right_axis_auto_scale="true">
+						<plot color="blue" pen_width="3" index="0" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Level_of_Stress_1"/>
+						</plot>
+						<plot color="red" pen_width="3" index="1" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="Workload_1"/>
+						</plot>
+						<plot color="fuchsia" pen_width="3" index="2" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="productivity_1"/>
+						</plot>
+						<plot color="#008F44" pen_width="3" index="3" show_y_axis="true">
+							<format precision="1" scale_by="1"/>
+							<entity name="vacation_1"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<button color="white" font_family="Arial" corner_radius="6" label="" uid="149" x="269" y="478" width="44" height="39">
+					<actions>
+						<action>run_to_end</action>
+					</actions>
+				</button>
+				<button color="white" background="#30CB32" font_family="Arial" corner_radius="6" label="Clear All" uid="150" x="492" y="480" width="65" height="34">
+					<actions>
+						<action>restore_all</action>
+					</actions>
+				</button>
+				<isee:annotation color="white" background="#30CB32" font_family="Arial" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="16pt" launcher_label="Debrief" show_by_default="false" hide_launcher="false" uid="151" x="339" y="480" width="65" height="34">
+					<popup hide_when_editing="true" x="484.5" y="406" width="268" height="174">
+						<text>See the effects on your stress level of taking a longer vacation.
+The one week vacations help but not as much as two weeks in a row.</text>
+					</popup>
+				</isee:annotation>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="0" label="" uid="152" x="729" y="12" width="28" height="26">
+					<actions>
+						<action target="interface:1">navigate</action>
+					</actions>
+					<image width="25" height="23" size_to_parent="false">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAIAAABxgXNEAAAFfElEQVQ4jTWSa2zeZRmHf/f9PP/Te+hpXYGtMjZGK03YouiqjjGGQzZFRxwaBTUmSqImGhLUBDFjEr6aqB80ymCAy6KCDIVStnawZXNNcZBOYIKaDjb7dj2uh73v+z88z337YfHb9elKruQiLQqxqoARglO1ASmQA1RvxNESipVIjEMzS8NybCAoch9YBw6854xgrQ8xB+0CMTyrUgFK89yFwRJjxiBN4OKolNl2lzxxcuxbzxw4+sFkAYgA1hqgyNOCFImFUcnyFSAAFsSG2AES2clmemD4yHw969/Qf3fftd7gj6++/eujR89dnnv3PxMTWz5x786tgS9iE1TC2AHLkoZsosCiEARsoUibzgUcW15abPzhub9IUl7d3Ts73/30yLEnBgZ7um/4yrbbT5w+te/w4HSR3fe5LVeBywILJBx6iGpBXhHEFowwtIZgFUuTs13ltr6Pf2r9NWsPnhn75Z8Obr5540+++rVrqqW+67qePjy4/6XDdbP8ja07+5IS6s5WLBipZEkcAjB7f/qIt8QAC7zjVdf39N540ztjZ/cOPPWdnV/80e57T595fd+fn113/frbbrl9+tLS0PFh8tyzpqelbACogq0tAAs2ex/d48gTmAlxW7Jgw6HR0YGhI/ds33L3rXe+efbcvldPHB9/f/zC5A2rV+/eublxyf/9jTPnZi5e23tjNWb2ZA0pxIDNIw8/JIYVSJvZe7Wpg0cPvzw6svUzd/5i62dfePP0z44Mna1d1mRlbepibfydtUn8+Tu21y41X3nj1L8n3+++qvtDHRX2MAIwmR88+lglE/bm0AfzP37uyNtvnf/hF3Z9b8emrw+P7R86PjM1lyShutSBaylefvd8b7Xjvts2t1TLj//ttTMXF9dXe1eUw8WYyoB5eM8DYVA68c+Jx/Y9Lnnjofu/ueljH/7doYEXRt+am5nhICAi570NAmbOi+LU2dfbq+333PrJnhVrToyOjIz/Y1VX18aOFWzALWzPzy7sH3ipXl/+7u4dvZ3VQ0Mnnzw5Nl2rgSiKIhER75mZmYloHvqr4RefHz716et6v3/XrgsL/3322KC5DAAWkhS8vGHDulu23XxH/0eefOb537zy2nRruy2XiMipeCgFthCvqmCKtTpxaX7PiweaCzP3f2kXonx2eiqtIAYo8+oYBTIgeq+29ODPfzsyWfMtEbmIiESEiIwx3nsVAVEpRaNVkM9uWNn5+wcevKmrvZ6rRlQFGIwQ0oqiFS7PZBYk5bIVUueMMcysqs45AEEYMrO2J9wkQ21FUpo3jhQVppIAAFO9aQFojMxWIhuUoJYtt5o4YmvIMBkGVFXYGjA1s0UFt6BaKcolU4IUoMxwAYCDsBDvoRYEzRusC0Fo08sCIEtTn6ZBENgwBOCck6JAFKpFw2vYoJVpADUwro4GAAvT4lkFTknVSFkT20x9EnqxkZVt69a2hpKVmBu8VMex6YmkkTcNq00liZeoAdsGRDHKACw8FELMJiBPlHlkgKhGkvZ2dXx7x/a+Ve1piHRZ/nV+4cLgX8ezeTEhwStZB1IBgdhceYIQMDmogHOh1HkhApNQXg5l45qu9W2JGpEOWw5bUNQLNgCJ0wIQYhhAmAAADID+D6rKEFaPolkYX0eu5AHvXAqAE25QAXHIMjQaKLxT8QBA4q4oRBSsUAJMXnSEQSfyOF1Eswg9smYBZWtjVTTraUuclCQta94ZcFdkNWsqAALzlUbDHgDYCFa3tdzV/9H+wruG1D2tba90mgipUCWwGa5W/vKmTdO9cxZRiaPu1uTq1pJoAQQAAJCKpgQLWA8AU3nOSRh4GIUoWgkgyY2EnuF5OoBoAR9YhRbSXmZGzrDwDIP/AXKdxGk+FmzNAAAAAElFTkSuQmCC</image>
+				</button>
+				<button color="white" background="#0CA0FF" font_family="Arial" corner_radius="6" label="Back" uid="153" x="28" y="481.5" width="57" height="32">
+					<actions>
+						<action target="previous_page">navigate</action>
+					</actions>
+				</button>
+				<isee:annotation color="white" font_family="Arial" corner_radius="6" popup_text_align="left" popup_vertical_text_align="top" popup_font_size="13pt" launcher_label="Citations" show_by_default="false" hide_launcher="false" uid="154" x="689" y="480" width="65" height="34">
+					<popup hide_when_editing="true" x="104.5" y="39" width="482" height="493">
+						<text>1) PubMed Health. &quot;What is burnout syndrome?&quot; Institute for Quality and Efficiency in Health Care. U.S. National Library of Medicine, 2013. Web. 19 August 2014 &lt;http://www.ncbi.nlm.nih.gov/pubmedhealth/PMH0050545/&gt;
+
+2) Smith, M., M.A., Segal, J., Ph.D., &amp; Segal, R., M.A. &quot;Preventing Burnout: Signs, symptoms, causes and coping strategies.&quot; Helpguide.org. 2014. 19 August 2014 &lt;http://www.helpguide.org/mental/burnout_signs_symptoms.htm&gt;
+
+3) Weber, A &amp; Jaekel-Reinhart, A. &quot;Burnout Syndrome: A Disease of Modern Societies?&quot; Occupational Medicine 50.7 (2000) 512-517.  Oxford Journals. Web. 19 August 2014 &lt;http://occmed.oxfordjournals.org/content/50/7/512.abstract&gt;
+
+4) Expedia.  &quot;Expedia 2013 Vacation Deprivation Study.&quot; Expeida. 2013. Web. 19 August 2014
+&lt;http://viewfinder.expedia.com/docs/default-source/downloadable-pr-docs/stor-16189_vacation_deprivation.pdf?sfvrsn=2&gt;
+
+5) Polikandrioti M. &quot; Editorial Article, Burnout Syndrome.&quot; Health Science Journal 3.4 (2009) 195-196. Health Science Journal. Web. 19 August 2014 http://www.hsj.gr/volume3/issue4/340.pdf
+
+6) Van Giezen, R. &quot;Paid Leave in private industry over the past 20 years.&quot; Beyond the Numbers 2.18 (2013) 1-6. U.S. Bureau of Labor Statistics. Web. 25 August 2014 &lt;http://www.bls.gov/opub/btn/volume-2/paid-leave-in-private-industry-over-the-past-20-years.htm&gt;</text>
+					</popup>
+				</isee:annotation>
+			</view>
+			<isee:stories/>
+		</views>
+	</model>
+	<isee:controls>
+		<isee:control priority="interactive" name="length_of_vacation" value="4"/>
+		<isee:control priority="interactive" name="vacation_switch" value="1"/>
+	</isee:controls>
+</xmile>
+

@@ -1,11 +1,11 @@
-package hr.unipu.transpiler.FunctionsWithFiles
+package hr.unipu.transpiler.functionsWithFiles
 
 import java.io.FileReader
 import java.io.FileWriter
 
-fun CreateFile(name:String,str:String) {
+fun createFile(name:String,str:String) {
     try {
-        var fil = FileWriter("src/main/kotlin/hr/unipu/transpiler/Kotlin_models/$name.txt",true)
+        var fil = FileWriter("src/main/kotlin/$name.xml",true)
         fil.write(str+"\n")
         fil.close()
 

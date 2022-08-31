@@ -1,19 +1,37 @@
-
 import hr.unipu.transpiler.controller.*
+import hr.unipu.transpiler.functionsWithFiles.createFile
 import hr.unipu.transpiler.globalVariables.transpilerDataMap
 import hr.unipu.transpiler.globalVariables.transpilerDataMapKsdToolkitSet
 import hr.unipu.transpiler.globalVariables.transpilerString
+import org.w3c.dom.Element
 
 
 fun main() {
+   /* var tokens = createListOfStrings("Vacation")
+    tokens = prepareNamesForTranspiling(tokens)
+    tokens = removeWantedTagBlock(tokens,"<views","</views>")
+    var connectString = ""
+    for (token in tokens){
+        connectString += token.removeSurrounding(",",",")
+    }
+    println(connectString)
 
-        /**val source = "main.xml"
-            print(loadXmlWithIncludes(source))
-        return*/
+    createFile( "Vacation1",connectString)*/
+
+    val classloader = Thread.currentThread().contextClassLoader
+    val xmlFileName = "Vacation1.xml"
+    val xmlFile = classloader.getResource(xmlFileName)
+    val tree = parseXml(xmlFile.readText())
+    val root = tree.documentElement
+
+    transpilerXmileToKsdtoolkit(root)
+    /**val source = "main.xml"
+    print(loadXmlWithIncludes(source))
+    return*/
 
     //ReadFromFile("hares_and_foxes")
     //transpiler("hares_and_foxes")
-    transpiler("Vacation")
+    //transpilerOld("Vacation")
     //transpiler("Comments_test")
 
     /**
@@ -71,7 +89,7 @@ fun main() {
     /**
      * Creating test file
      */
-   // val KSDmodel= getKSDTemplate() //uncomment the import
+    // val KSDmodel= getKSDTemplate() //uncomment the import
     //CreateFile("proba1", KSDmodel) //uncomment the import
 }
 
@@ -79,8 +97,18 @@ fun main() {
  * Creating tokens and removing wanted values with lexer function
  */
 
+fun transpilerXmileToKsdtoolkit(root: Element) {
+    getXmileData(root)
+    printDataInMapOfStrings(transpilerDataMap)
+    setDataForTranspiling()
+    //printDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
+    transpilerStringCreator()
+    println(transpilerString)
+    transpilerString=null
 
-fun transpiler(name: String){
+}
+/**
+fun transpilerOld(name: String) {
 
 
     /**
@@ -96,7 +124,7 @@ fun transpiler(name: String){
     tokens = preparingNamesForTranspiling(tokens)
 
     //Removing view tags if possible
-    tokens = removeWantedTagBlock(tokens,"<views","</views>")
+    tokens = removeWantedTagBlock(tokens, "<views", "</views>")
     tokens.remove("<model_units>")
     tokens.remove("<model_units/>")
     //println(tokens)
@@ -122,7 +150,7 @@ fun transpiler(name: String){
     gettingSimSpecsTagData(tokens)
 
     //4. Getting data from model of hr.unipu.transpiler.XMILE format
-    gettingModelTagData(tokens,modelName)
+    gettingModelTagData(tokens, modelName)
     println("\n")
 
     //Getting data from options of hr.unipu.transpiler.XMILE format
@@ -137,10 +165,10 @@ fun transpiler(name: String){
     settingDataForTranspiling()
     printingDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
     transpilerStringCreator()
-    printingTransStringData(transpilerString)
+    println(transpilerString)
 
 }
-
+*/
 
 
 

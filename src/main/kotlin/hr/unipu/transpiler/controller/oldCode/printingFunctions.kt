@@ -27,7 +27,4 @@ fun printingSetData(name: String, equationValueConstant: String?, equationValueC
 
 }
 
-fun printingTransStringData(transStringList: MutableList<String>){
-    println(transStringList)
 
-}

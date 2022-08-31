@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee"/>
+		<name>Vacation</name>
+		<uuid>18fb9a21-0468-4d6b-89f4-d245e3595162</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="1.1rc1" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<sim_specs isee:simulation_delay="0" method="Euler" time_units="Weeks" isee:pause_after_rates="false" isee:instantaneous_flows="false">
+		<start>1</start>
+		<stop>52</stop>
+		<dt>0.125</dt>
+	</sim_specs>
+	<isee:prefs show_module_prefix="true" live_update_on_drag="true" layer="map"/>
+	<model_units>
+		<unit name="Dimensionless">
+			<eqn>1</eqn>
+			<alias>dmnl</alias>
+			<alias>unitless</alias>
+		</unit>
+	</model_units>
+	<isee:sensi_specs run="false" method="multivariate" runs="0"/>
+	<model>
+		<variables>
+			<stock name="Vacation_Effect_on_Decompression">
+				<eqn>desired_effect_from_vacation</eqn>
+				<inflow>adjust_vacation_effect</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="adjust_vacation_effect">
+				<eqn>(desired_effect_from_vacation - Vacation_Effect_on_Decompression)/time_to_adjust_effect</eqn>
+			</flow>
+			<aux name="vacation" flow_concept="true">
+				<eqn>IF (vacation_switch = 1 AND total_weeks_vacation_taken &lt; 4)
+THEN (IF TIME - Last_Vacation_Start &gt;= time_working_before_vacation THEN 1 
+ELSE 0)
+ELSE 0</eqn>
+			</aux>
+			<aux name="desired_effect_from_vacation">
+				<eqn>(1 - vacation) + vacation*0.5</eqn>
+			</aux>
+			<aux name="time_to_adjust_effect">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="time_working_before_vacation">
+				<eqn>12</eqn>
+			</aux>
+			<aux name="length_of_vacation">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="Last_Vacation_Start">
+				<eqn>STARTTIME</eqn>
+				<inflow>update_vacation_start</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="update_vacation_start">
+				<eqn>IF DELAY(vacation, length_of_vacation - DT) = 1
+THEN ((TIME - length_of_vacation + DT) - Last_Vacation_Start + DT)/DT
+ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Level_of_Stress">
+				<doc>Stress Level measured on a scale of 1-10. One being not at all stressed, 10 being the most stressed.</doc>
+				<eqn>20</eqn>
+				<inflow>accumulating_stress</inflow>
+				<outflow>decompressing</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulating_stress">
+				<eqn>(1 - vacation)*effect_of_stress_on_building_stress*actual_stress</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="decompressing">
+				<eqn>Level_of_Stress/actual_time_to_decompress</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Workload">
+				<eqn>normal_workload</eqn>
+				<inflow>piling_up</inflow>
+				<outflow>working_down</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="piling_up">
+				<eqn>(1 - vacation)*(normal_workload + added_assignments)</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="working_down">
+				<eqn>(1 - vacation)*productivity</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="normal_time_to_decompress">
+				<eqn>4</eqn>
+			</aux>
+			<aux name="normal_stress">
+				<eqn>5</eqn>
+			</aux>
+			<aux name="effect_of_stress_on_decompression">
+				<eqn>Level_of_Stress</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1,1.07936507936508,1.21269841269841,1.40952380952381,1.61904761904762,1.7968253968254,1.9047619047619,2</ypts>
+				</gf>
+			</aux>
+			<aux name="normal_productivity">
+				<eqn>normal_workload</eqn>
+			</aux>
+			<aux name="added_assignments">
+				<eqn>PULSE(number_of_added_assignments*DT, 2, 0)</eqn>
+				<scale min="0" max="30"/>
+			</aux>
+			<aux name="normal_workload">
+				<eqn>10</eqn>
+			</aux>
+			<aux name="excess_work_effect_on_stress">
+				<eqn>Workload/normal_workload</eqn>
+				<gf>
+					<xscale min="0" max="2"/>
+					<yscale min="0" max="3"/>
+					<ypts>0,0.0202020202020202,0.101010101010101,0.242424242424242,0.495238095238095,1,1.82857142857143,2.41904761904762,2.76190476190476,2.92380952380952,3</ypts>
+				</gf>
+			</aux>
+			<aux name="productivity">
+				<eqn>excess_work_effect_on_productivity*stress_effect_on_productivity*normal_productivity</eqn>
+				<scale min="6" max="12"/>
+			</aux>
+			<aux name="stress_effect_on_productivity">
+				<eqn>Level_of_Stress</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="0.2" max="1.2"/>
+					<ypts>1.05806451612903,1.03548387096774,1,0.97,0.912903225806452,0.858064516129032,0.796774193548387,0.732258064516129,0.661290322580645,0.587096774193548,0.5</ypts>
+				</gf>
+			</aux>
+			<aux name="actual_time_to_decompress">
+				<eqn>effect_of_stress_on_decompression*Vacation_Effect_on_Decompression*normal_time_to_decompress</eqn>
+			</aux>
+			<aux name="number_of_added_assignments">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="excess_work_effect_on_productivity">
+				<eqn>Workload/normal_workload</eqn>
+				<gf>
+					<xscale min="1" max="2"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1.06451612903226,1.17972350230415,1.31336405529954,1.4147465437788,1.46543778801843,1.49308755760369,1.49769585253456,1.50230414746544</ypts>
+				</gf>
+				<units>Unitless</units>
+			</aux>
+			<aux name="actual_stress">
+				<eqn>excess_work_effect_on_stress*normal_stress</eqn>
+			</aux>
+			<aux name="stress_upper_limit">
+				<eqn>100</eqn>
+			</aux>
+			<aux name="maximum_stress_change" flow_concept="true">
+				<eqn>(stress_upper_limit - Level_of_Stress)/1 + decompressing</eqn>
+			</aux>
+			<aux name="effect_of_stress_on_building_stress">
+				<eqn>maximum_stress_change/MAX(actual_stress, 0.01)</eqn>
+				<gf>
+					<xscale min="0" max="2.2"/>
+					<yscale min="0" max="1"/>
+					<ypts>0,0.295238095238095,0.536507936507936,0.73015873015873,0.838095238095238,0.892063492063492,0.93968253968254,0.968253968253968,0.987301587301587,0.996825396825397,1</ypts>
+				</gf>
+			</aux>
+			<aux name="vacation_switch">
+				<eqn>0</eqn>
+			</aux>
+			<stock name="total_weeks_vacation_taken">
+				<eqn>0</eqn>
+				<inflow>accumulate_vacation_weeks</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulate_vacation_weeks">
+				<eqn>vacation</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Vacation_Effect_on_Decompression_1">
+				<eqn>desired_effect_from_vacation_1</eqn>
+				<inflow>adjust_vacation_effect_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="adjust_vacation_effect_1">
+				<eqn>(desired_effect_from_vacation_1 - Vacation_Effect_on_Decompression_1)/time_to_adjust_effect_1</eqn>
+			</flow>
+			<aux name="vacation_1" flow_concept="true">
+				<eqn>IF (vacation_switch_1 = 1 AND total_weeks_vacation_taken_1 &lt; 4)  THEN (IF
+ TIME - Last_Vacation_Start_1 &gt;= time_working_before_vacation_1 THEN 1 
+ELSE 0) ELSE 0</eqn>
+			</aux>
+			<aux name="desired_effect_from_vacation_1">
+				<eqn>(1 - vacation_1) + vacation_1*0.5</eqn>
+			</aux>
+			<aux name="time_to_adjust_effect_1">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="time_working_before_vacation_1">
+				<eqn>12</eqn>
+			</aux>
+			<aux name="length_of_vacation_1">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="Last_Vacation_Start_1">
+				<eqn>STARTTIME</eqn>
+				<inflow>update_vacation_start_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="update_vacation_start_1">
+				<eqn>IF DELAY(vacation_1, length_of_vacation_1 - DT) = 1
+THEN ((TIME-length_of_vacation_1 + DT) - Last_Vacation_Start_1 + DT)/DT
+ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Level_of_Stress_1">
+				<doc>Stress Level measured on a scale of 1-10. One being not at all stressed, 10 being the most stressed.</doc>
+				<eqn>20</eqn>
+				<inflow>accumulating_stress_1</inflow>
+				<outflow>decompressing_1</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulating_stress_1">
+				<eqn>(1 - vacation_1)*effect_of_stress_on_building_stress_1*actual_stress_1</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="decompressing_1">
+				<eqn>Level_of_Stress_1/actual_time_to_decompress_1</eqn>
+				<non_negative/>
+			</flow>
+			<stock name="Workload_1">
+				<eqn>normal_workload_1</eqn>
+				<inflow>piling_up_1</inflow>
+				<outflow>working_down_1</outflow>
+				<non_negative/>
+			</stock>
+			<flow name="piling_up_1">
+				<eqn>(1 - vacation_1)* (normal_workload_1+ added_assignments_1)</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="working_down_1">
+				<eqn>(1 - vacation_1)*productivity_1</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="normal_time_to_decompress_1">
+				<eqn>4</eqn>
+			</aux>
+			<aux name="normal_stress_1">
+				<eqn>5</eqn>
+			</aux>
+			<aux name="effect_of_stress_on_decompression_1">
+				<eqn>Level_of_Stress_1</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1,1.07936507936508,1.21269841269841,1.40952380952381,1.61904761904762,1.7968253968254,1.9047619047619,2</ypts>
+				</gf>
+			</aux>
+			<aux name="normal_productivity_1">
+				<eqn>normal_workload_1</eqn>
+			</aux>
+			<aux name="added_assignments_1">
+				<eqn>PULSE(number_of_assignments_added_1*DT, 2,0 )</eqn>
+				<scale min="0" max="30"/>
+			</aux>
+			<aux name="normal_workload_1">
+				<eqn>10</eqn>
+			</aux>
+			<aux name="excess_work_effect_on_stress_1">
+				<eqn>Workload_1/normal_workload_1</eqn>
+				<gf>
+					<xscale min="0" max="2"/>
+					<yscale min="0" max="3"/>
+					<ypts>0,0.0202020202020202,0.101010101010101,0.242424242424242,0.495238095238095,1,1.82857142857143,2.41904761904762,2.76190476190476,2.92380952380952,3</ypts>
+				</gf>
+			</aux>
+			<aux name="productivity_1">
+				<eqn>excess_work_effect_on_productivity_1*stress_effect_on_productivity_1*normal_productivity_1</eqn>
+				<scale min="6" max="12"/>
+			</aux>
+			<aux name="stress_effect_on_productivity_1">
+				<eqn>Level_of_Stress_1</eqn>
+				<gf>
+					<xscale min="0" max="100"/>
+					<yscale min="0.2" max="1.2"/>
+					<ypts>1.05806451612903,1.03548387096774,1,0.961290322580645,0.912903225806452,0.858064516129032,0.796774193548387,0.732258064516129,0.661290322580645,0.587096774193548,0.5</ypts>
+				</gf>
+			</aux>
+			<aux name="actual_time_to_decompress_1">
+				<eqn>effect_of_stress_on_decompression_1 * Vacation_Effect_on_Decompression_1 * normal_time_to_decompress_1</eqn>
+			</aux>
+			<aux name="number_of_assignments_added_1">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="excess_work_effect_on_productivity_1">
+				<eqn>Workload_1/normal_workload_1</eqn>
+				<gf>
+					<xscale min="1" max="2"/>
+					<yscale min="1" max="2"/>
+					<ypts>1,1,1,1.06451612903226,1.17972350230415,1.31336405529954,1.4147465437788,1.46543778801843,1.49308755760369,1.49769585253456,1.50230414746544</ypts>
+				</gf>
+				<units>Unitless</units>
+			</aux>
+			<aux name="actual_stress_1">
+				<eqn>excess_work_effect_on_stress_1*normal_stress_1</eqn>
+			</aux>
+			<aux name="stress_upper_limit_1">
+				<eqn>100</eqn>
+			</aux>
+			<aux name="maximum_stress_change_1" flow_concept="true">
+				<eqn>(stress_upper_limit_1 - Level_of_Stress_1)/1 + decompressing_1</eqn>
+			</aux>
+			<aux name="effect_of_stress_on_building_stress_1">
+				<eqn>maximum_stress_change_1/MAX(actual_stress_1, 0.01)</eqn>
+				<gf>
+					<xscale min="0" max="2.2"/>
+					<yscale min="0" max="1"/>
+					<ypts>0,0.295238095238095,0.536507936507936,0.73015873015873,0.838095238095238,0.892063492063492,0.93968253968254,0.968253968253968,0.987301587301587,0.996825396825397,1</ypts>
+				</gf>
+			</aux>
+			<aux name="vacation_switch_1">
+				<eqn>1</eqn>
+			</aux>
+			<stock name="total_weeks_vacation_taken_1">
+				<eqn>0</eqn>
+				<inflow>accumulate_vacation_weeks_1</inflow>
+				<non_negative/>
+			</stock>
+			<flow name="accumulate_vacation_weeks_1">
+				<eqn>vacation_1</eqn>
+				<non_negative/>
+			</flow>
+			<group name="Final_Page" run="false">
+				<entity name="stress_upper_limit_1"/>
+				<entity name="piling_up_1"/>
+				<entity name="update_vacation_start_1"/>
+				<entity name="time_working_before_vacation_1"/>
+				<entity name="Level_of_Stress_1"/>
+				<entity name="productivity_1"/>
+				<entity name="desired_effect_from_vacation_1"/>
+				<entity name="number_of_assignments_added_1"/>
+				<entity name="accumulating_stress_1"/>
+				<entity name="working_down_1"/>
+				<entity name="length_of_vacation_1"/>
+				<entity name="decompressing_1"/>
+				<entity name="adjust_vacation_effect_1"/>
+				<entity name="effect_of_stress_on_building_stress_1"/>
+				<entity name="time_to_adjust_effect_1"/>
+				<entity name="total_weeks_vacation_taken_1"/>
+				<entity name="excess_work_effect_on_stress_1"/>
+				<entity name="accumulate_vacation_weeks_1"/>
+				<entity name="normal_stress_1"/>
+				<entity name="normal_workload_1"/>
+				<entity name="maximum_stress_change_1"/>
+				<entity name="Workload_1"/>
+				<entity name="actual_stress_1"/>
+				<entity name="vacation_switch_1"/>
+				<entity name="Vacation_Effect_on_Decompression_1"/>
+				<entity name="excess_work_effect_on_productivity_1"/>
+				<entity name="Last_Vacation_Start_1"/>
+				<entity name="added_assignments_1"/>
+				<entity name="stress_effect_on_productivity_1"/>
+				<entity name="effect_of_stress_on_decompression_1"/>
+				<entity name="vacation_1"/>
+				<entity name="normal_productivity_1"/>
+				<entity name="actual_time_to_decompress_1"/>
+				<entity name="normal_time_to_decompress_1"/>
+			</group>
+		</variables>
+	</model>
+	<isee:controls>
+		<isee:control priority="interactive" name="length_of_vacation" value="4"/>
+		<isee:control priority="interactive" name="vacation_switch" value="1"/>
+	</isee:controls>
+</xmile>

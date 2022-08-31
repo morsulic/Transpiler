@@ -46,11 +46,11 @@ fun gettingOptionsTagData(tokens: MutableList<String>): Boolean {
     return optionslList.contains("<uses_submodels/>")
 }
 
-/*fun gettingHeaderTagData(tokens: MutableList<String>) {
+fun gettingHeaderTagData(tokens: MutableList<String>) {
 
     val headerList = breakListToSubList(tokens, "<header", "</header>")
 
-    if (checkingTagListIsAdded(headerList, "Header tag")) {
+    //if (checkingTagListIsAdded(headerList, "Header tag")) {
         val modelName = breakListToSubList(headerList, "<name", "</name>")
         val modelVendor = breakListToSubList(headerList, "<vendor", "</vendor>")
         val productName = breakListToSubList(headerList, "<product", "</product>")
@@ -77,13 +77,13 @@ fun gettingOptionsTagData(tokens: MutableList<String>): Boolean {
             transpilerDataMap += mapOf("Options SubModel" to subModelOptionsBool.toString())
 
         }
-    }
+   // }
     /*
      * Working ++ (tested and confirmed rules with Test9, Test10 and Test11)
      */
 
 
-}*/
+}
 
 /**
  * XMILE file Base-Level Conformance
