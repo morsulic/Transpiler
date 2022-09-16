@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+    <header>
+        <smile version="1.0" namespace="std, isee"/>
+        <name>Vacation</name>
+        <uuid>18fb9a21-0468-4d6b-89f4-d245e3595162</uuid>
+        <vendor>isee systems, inc.</vendor>
+        <product version="1.1rc1" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+    </header>
+    <model name="Vacation">
+    </model>
+</xmile>
+

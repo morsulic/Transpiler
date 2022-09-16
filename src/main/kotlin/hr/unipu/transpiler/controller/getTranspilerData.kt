@@ -118,7 +118,8 @@ fun getOutFlowsValue(element: Element): String {
 
 fun getXmileData(element: Element): List<Map<String, Any>> {
     var tModel = listOf<Map<String, Any>>()
-
+    transpilerDataMap += mapOf("constants" to "")
+    transpilerDataMap += mapOf("stocks" to "")
     getXmileTagData(element)
     getSimSpecs(element)
     getHeader(element)
@@ -159,40 +160,87 @@ fun getSimSpecs(element: Element, modelName: String = "default") {
 
         method = prepareTypeOfSimSpecsIntegration(method)
 
-        transpilerDataMap += "$modelName SimSpecs Method:" to "$method"
-        transpilerDataMap += "$modelName SimSpecs Time unit:" to "$timeUnit"
-        transpilerDataMap += "$modelName SimSpecs Initial time:" to "$startTime"
-        transpilerDataMap += "$modelName SimSpecs Final time:" to "$stopTime"
-        transpilerDataMap += "$modelName SimSpecs Time step:" to "$dt"
+        transpilerDataMap += "$modelName SimSpecs Method:" to method
+        transpilerDataMap += "$modelName SimSpecs Time unit:" to timeUnit
+        transpilerDataMap += "$modelName SimSpecs Initial time:" to startTime
+        transpilerDataMap += "$modelName SimSpecs Final time:" to stopTime
+        transpilerDataMap += "$modelName SimSpecs Time step:" to dt
     } else {
         transpilerDataMap += mutableMapOf("$modelName SimSpecs empty:" to modelName)
     }
 }
 
+/**
+ * XMILE file Base-Level Conformance
+ * 2. MUST include a <header> tag (Section 2) with sub-tags <vendor> and <product> with its version number (Section 2.2)
+ * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
+ * 6. MUST obey the namespace rules (Section 2.1 and 2.2.1)
+ * 7. MUST include, when using optional features, the <options> tag with those features specified (Section 2.2.1)
+ * Only optional feature that ksdtoolkit uses is feature sub_models thus it is the only one that needs to be implemented
+ * in Base-Level Conformance 7.
+ * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
+ */
+
+fun getOptions(element: Element) {
+    val options = element.getElementsByTagName("options").item(0) as Element?
+
+    transpilerDataMap += if (options != null) {
+        val usesSubModels = options.getElementsByTagName("uses_submodels") as Element?
+        if (usesSubModels != null) {
+            mapOf("Options SubModel" to true.toString())
+        } else {
+            mapOf("Options SubModel" to false.toString())
+        }
+    } else {
+        mapOf("Options SubModel" to false.toString())
+    }
+}
+
 fun getHeader(element: Element) {
     val headers = element.getElementsByTagName("header").item(0) as Element?
-    if (headers != null) {
 
+    if (headers != null) {
+        getOptions(headers)
         modelRootNameConst = headers.getElementsByTagName("name").item(0).textContent
         val product = headers.getElementsByTagName("product").item(0) as Element?
         val productName = headers.getElementsByTagName("product").item(0).textContent
 
         if (product != null) {
             val productVersion = product.getAttribute("version")
-            transpilerDataMap += mapOf("Product version" to productVersion)
+            if(productVersion!= null || productVersion!= ""){
+            transpilerDataMap += mapOf("Product version" to productVersion)}
+            else{
+                error("XMILE document needs to have product tag in header tag with its version.")
+            }
+        } else {
+            error("XMILE document needs to have product tag.")
         }
 
         val vendor = headers.getElementsByTagName("vendor").item(0).textContent
         transpilerDataMap += mapOf("Header root model name" to modelRootNameConst)
         transpilerDataMap += mapOf("Vendor" to vendor)
-        transpilerDataMap += mapOf("Product name" to productName)
+        if (productName != null || productName != "") {
+            transpilerDataMap += mapOf("Product name" to productName)
+        }else {
+            error("XMILE document needs to have product tag in header tag with its name.")
+        }
     } else {
         error("XMILE document needs to have et least one header tag.")
     }
 }
 
+/**
+ * XMILE file Base-Level Conformance
+ * 3. MUST include at least one <model> tag (Section 2)
+ * 4. MUST name models beyond the root model (Section 4)
+ * 11.  MUST support all base functionality objects (Section 3.1 and all subsections)
+ * http://docs.oasis-open.org/xmile/xmile/v1.0/errata01/csprd01/xmile-v1.0-errata01-csprd01-complete.html#_Toc442104247
+ */
+
+
 fun getModels(element: Element): Map<String, Any> {
     val models = element.getElementsByTagName("model")
+    if(models != null){
     val modelNameList = mutableListOf<String>()
     var map = mapOf<String, Any>()
     for (i in 0 until models.length) {
@@ -207,23 +255,26 @@ fun getModels(element: Element): Map<String, Any> {
         map += mapOf(modelName to getModules(model, modelName))
     }
     transpilerDataMap += mapOf("ModelNamesListInStringForm" to "" + modelNameList.toString())
-    return map
+        return map
+    }else{
+        error("XMILE document needs to have et least one model tag.")
+    }
 }
 
 fun getStocks(element: Element, modelName: String): Map<String, String?> {
-    val stock = element
-    val name = getName(stock, "Stock")
+    val name = getName(element, "Stock")
     if (name.isEmpty()) error("Stock 'name' attribute is empty")
 
-    val eqn = getWantedTagValue(stock, "eqn")
-    val inflowList = getWantedTagValues(stock, "inflow")
-    val outflowList = getWantedTagValues(stock, "outflow")
-    val unit = getWantedTagValue(stock, "units")
-    val description = getWantedTagValue(stock, "doc")
+    val eqn = getWantedTagValue(element, "eqn")
+    val inflowList = getWantedTagValues(element, "inflow")
+    val outflowList = getWantedTagValues(element, "outflow")
+    val unit = getWantedTagValue(element, "units")
+    val description = getWantedTagValue(element, "doc")
     var inflow = ""
     var outflow = ""
 
-    transpilerDataMap += mapOf("$modelName StockName: $name" to "$name")
+    transpilerDataMap += mapOf("$modelName StockName: $name" to name)
+    transpilerDataMap += mapOf("stocks" to transpilerDataMap.getValue("stocks")+","+name)
     if (eqn != null) {
         prepareEquationsInConstantsOrConverters(modelName, name, "Stock", eqn)
         //transpilerDataMap += mapOf("$modelName StockEquationTokenValue: $name" to "$eqn")
@@ -233,7 +284,7 @@ fun getStocks(element: Element, modelName: String): Map<String, String?> {
 
     if (outflowList != null) outflow = prepareOutflowsOfStock(outflowList)
 
-    if(inflow.isNotEmpty() || outflow.isNotEmpty())
+    if (inflow.isNotEmpty() || outflow.isNotEmpty())
         transpilerDataMap += mapOf("$modelName StockInflowOutflowValue: $name" to "$inflow$outflow")
 
     if (unit != null) transpilerDataMap += mapOf("$modelName StockUnitValue: $name" to "$unit")
@@ -256,20 +307,19 @@ fun getStockList(element: Element, modelName: String): List<Map<String, String?>
 
 
 fun getFlows(element: Element, modelName: String): Map<String, String?> {
-    val flow = element
-    val name = getName(flow, "Flow")
+    val name = getName(element, "Flow")
     if (name.isEmpty()) error("Flow 'name' attribute is empty")
 
-    val eqn = getWantedTagValue(flow, "eqn")
-    val unit = getWantedTagValue(flow, "units")
-    val description = getWantedTagValue(flow, "doc")
+    val eqn = getWantedTagValue(element, "eqn")
+    val unit = getWantedTagValue(element, "units")
+    val description = getWantedTagValue(element, "doc")
 
-    transpilerDataMap += mapOf("$modelName FlowName: $name" to "$name")
+    transpilerDataMap += mapOf("$modelName FlowName: $name" to name)
     if (eqn != null) {
         prepareEquationsInConstantsOrConverters(modelName, name, "Flow", eqn)
     }
-    if (unit != null) transpilerDataMap += mapOf("$modelName FlowUnitValue: $name" to "$unit")
-    if (description != null) transpilerDataMap += mapOf("$modelName FlowDescriptionValue: $name" to "$description")
+    if (unit != null) transpilerDataMap += mapOf("$modelName FlowUnitValue: $name" to unit)
+    if (description != null) transpilerDataMap += mapOf("$modelName FlowDescriptionValue: $name" to description)
 
     return mapOf("name" to name, "eqn" to eqn)
 }
@@ -287,21 +337,20 @@ fun getFlowList(element: Element, modelName: String): List<Map<String, String?>>
 
 
 fun getAux(element: Element, modelName: String): Map<String, String?> {
-    val aux = element
-    val name = getName(aux, "Aux")
+    val name = getName(element, "Aux")
     if (name.isEmpty()) error("Aux 'name' attribute is empty")
 
-    transpilerDataMap += mapOf("$modelName AuxName: $name" to "$name")
-    val eqn = getWantedTagValue(aux, "eqn")
-    val unit = getWantedTagValue(aux, "units")
-    val description = getWantedTagValue(aux, "doc")
+    transpilerDataMap += mapOf("$modelName AuxName: $name" to name)
+    val eqn = getWantedTagValue(element, "eqn")
+    val unit = getWantedTagValue(element, "units")
+    val description = getWantedTagValue(element, "doc")
 
     if (eqn != null) {
         prepareEquationsInConstantsOrConverters(modelName, name, "Aux", eqn)
         //transpilerDataMap += mapOf("$modelName AuxEquationTokenValue: $name" to "$eqn")
     }
-    if (unit != null) transpilerDataMap += mapOf("$modelName AuxUnitValue: $name" to "$unit")
-    if (description != null) transpilerDataMap += mapOf("$modelName AuxDescriptionValue: $name" to "$description")
+    if (unit != null) transpilerDataMap += mapOf("$modelName AuxUnitValue: $name" to unit)
+    if (description != null) transpilerDataMap += mapOf("$modelName AuxDescriptionValue: $name" to description)
 
     return mapOf("name" to name, "eqn" to eqn)
 
@@ -324,14 +373,14 @@ fun getModules(element: Element, modelName: String) {
         val name = getName(module, "Module")
         if (name.isEmpty()) error("Module 'name' attribute is empty")
 
-        transpilerDataMap += mapOf("$modelName ModuleName: $name" to "$name")
+        transpilerDataMap += mapOf("$modelName ModuleName: $name" to name)
         val connections = module.getElementsByTagName("connect")
         for (i in 0 until connections.length) {
             val connect = connections.item(i) as Element
             val connectTo = connect.getAttribute("to")
             val connectFrom = connect.getAttribute("from")
-            transpilerDataMap += mapOf("$modelName ModuleConnectionsTo: $name" to "$connectTo")
-            transpilerDataMap += mapOf("$modelName ModuleConnectionsFrom: $name" to "$connectFrom")
+            transpilerDataMap += mapOf("$modelName ModuleConnectionsTo: $name" to connectTo)
+            transpilerDataMap += mapOf("$modelName ModuleConnectionsFrom: $name" to connectFrom)
         }
         transpilerDataMap += mapOf("$modelName ModelNameConnectionsLength: $name" to "${connections.length}")
 
@@ -342,7 +391,7 @@ fun getModules(element: Element, modelName: String) {
 
 fun main() {
     val classloader = Thread.currentThread().contextClassLoader
-    val xmlFileName = "proba.xml"
+    val xmlFileName = "checkModelNameTest/test1CheckModelName.xml"
     val xmlFile = classloader.getResource(xmlFileName)
     val tree = parseXml(xmlFile.readText())
     val root = tree.documentElement

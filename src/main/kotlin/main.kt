@@ -1,5 +1,4 @@
 import hr.unipu.transpiler.controller.*
-import hr.unipu.transpiler.functionsWithFiles.createFile
 import hr.unipu.transpiler.globalVariables.transpilerDataMap
 import hr.unipu.transpiler.globalVariables.transpilerDataMapKsdToolkitSet
 import hr.unipu.transpiler.globalVariables.transpilerString
@@ -100,6 +99,7 @@ fun main() {
 fun transpilerXmileToKsdtoolkit(root: Element) {
     getXmileData(root)
     printDataInMapOfStrings(transpilerDataMap)
+    printDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
     setDataForTranspiling()
     //printDataInMapOfStrings(transpilerDataMapKsdToolkitSet)
     transpilerStringCreator()

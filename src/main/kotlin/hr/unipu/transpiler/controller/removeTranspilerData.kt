@@ -59,3 +59,12 @@ fun removeWantedTagBlock (list0: MutableList<String>, firstBreakPoint: String, l
     return list1
 }
 
+fun removeExtraSpace(name: String): String {
+    var name1 = name
+    for (index in name.indices) {
+        if (name[index] == '_' && name[index + 1] == '_') {
+            name1 = name1.removeRange(index, index + 1)
+        }
+    }
+    return name1
+}

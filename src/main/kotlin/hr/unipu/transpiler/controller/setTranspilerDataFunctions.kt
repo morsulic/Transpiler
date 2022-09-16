@@ -41,6 +41,8 @@ fun setWantedData(modelName: String, tagType: String, tagName: String) {
         }
         try {
             equationValueConverter = helpMap.getValue("$modelName $tagType" + "EquationTokenValueConverter: $tagName")
+            equationValueConverter = prepareEquationsWithConstantsToUpperCase(equationValueConverter)
+            equationValueConverter = prepareEquationsStockNames(equationValueConverter)
         } catch (e: Exception) {
         }
         //nonNegativeValue = helpMap.getValue("$modelName $tagType" + "NonNegativeValueOf: $tagName")
@@ -101,14 +103,15 @@ fun setSystemElements(
     name: String, modelName: String, tagType: String, equationValueConstant: String?,
     equationValueConverter: String?
 ) {
-    if (equationValueConstant != null && tagType == "Aux") transpilerDataMapKsdToolkitSet +=
+    if (equationValueConstant != null && (tagType == "Aux" || tagType=="Stock")) transpilerDataMapKsdToolkitSet +=
         mapOf(
             "$modelName $name 2. Constants" to
                     "val ${name.uppercase()} = model.constant(${name.uppercase()}" + "_KEY)"
         )
     if (tagType == "Stock")
-        transpilerDataMapKsdToolkitSet += mapOf("$modelName $name 2. Stocks"
-                to "val ${name.lowercase().replaceFirstChar { it.uppercase()}} = model.stock(\"$name\")")
+        transpilerDataMapKsdToolkitSet += mapOf("$modelName $name 2. Stocks" to
+                "val ${name.lowercase().replaceFirstChar { it.uppercase()}} " +
+                "= model.stock(\"${name.lowercase().replaceFirstChar { it.uppercase()}}\")")
     if (tagType == "Flow") transpilerDataMapKsdToolkitSet +=
         mapOf("$modelName $name 2. Flows" to "val ${name.lowercase()} = model.flow(\"$name\")")
     if (equationValueConverter != null && tagType == "Aux") transpilerDataMapKsdToolkitSet +=

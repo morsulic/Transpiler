@@ -1,12 +1,13 @@
 package hr.unipu.transpiler.controller
 
 import hr.unipu.transpiler.globalVariables.transpilerDataMap
+
 /**
- * Function for preparing of inflows and outflows of stock
+ * Function for preparing of inflows and outflows of stock:
  *     prepareInflowsOfStock
  *     prepareOutflowsOfStock
  */
-fun prepareInflowsOfStock(inflowsList: List<String>):String{
+fun prepareInflowsOfStock(inflowsList: List<String>): String {
     var flows = ""
     for (i in inflowsList.indices) {
         var x = inflowsList[i]
@@ -26,7 +27,8 @@ fun prepareInflowsOfStock(inflowsList: List<String>):String{
     }
     return flows
 }
-fun prepareOutflowsOfStock(outflowList: List<String>):String{
+
+fun prepareOutflowsOfStock(outflowList: List<String>): String {
     var flows = ""
     for (i in outflowList.indices) {
         var x = outflowList[i]
@@ -47,7 +49,7 @@ fun prepareOutflowsOfStock(outflowList: List<String>):String{
 }
 
 /**
- * Function for preparing type of integration function in sim specs tag
+ * Function for preparing type of integration function in sim specs tag:
  *      preparingTypeOfSimSpecsIntegration
  */
 
@@ -61,97 +63,41 @@ fun prepareTypeOfSimSpecsIntegration(method: String): String {
 }
 
 /**
- * Function for preparing equation with macro functions
+ * Function for preparing equation with macro functions:
  *     preparingEquationForMacroFunctions
  */
 
-fun prepareEquationForBuiltInFunctions(valueEquation: String):String{
+fun prepareEquationForBuiltInFunctions(valueEquation: String): String {
     if (checkContainsMacroFunction(valueEquation)) {
         return "/*$valueEquation*/"
     }
     return valueEquation
 }
 
-fun checkFirstChar(name: String): String {
-    val validChars = listOf<Char>(
-        'q',
-        'w',
-        'e',
-        'r',
-        't',
-        'z',
-        'u',
-        'i',
-        'o',
-        'p',
-        'a',
-        's',
-        'd',
-        'f',
-        'g',
-        'h',
-        'j',
-        'k',
-        'l',
-        'y',
-        'x',
-        'c',
-        'v',
-        'b',
-        'n',
-        'm',
-        'Q',
-        'W',
-        'E',
-        'R',
-        'T',
-        'Z',
-        'U',
-        'I',
-        'O',
-        'P',
-        'A',
-        'S',
-        'D',
-        'F',
-        'G',
-        'H',
-        'J',
-        'K',
-        'L',
-        'Y',
-        'X',
-        'C',
-        'V',
-        'B',
-        'N',
-        'M'
+fun prepareEquationForImplementedBuiltInFunctions(valueEquation: String): String {
+    var result = checkContainsBuiltInImplementedFunctions(valueEquation)
+    var builtInMap = mapOf(
+        "STARTTIME" to "INITIAL_TIME_VALUE", "STOPTIME" to "FINAL_TIME_VALUE",
+        "DT" to "TIME_STEP_VALUE"
     )
-    var name1 = name
-    for (index in name.indices) {
-        if (validChars.contains(name[index])) {
-            return name1
-        } else {
-            error("Invalid identifier: $name")
-            // name1 = name.removeRange(index,index+1)
+    var value = valueEquation
+    if (result != "") {
+        for (operator in builtInMap) {
+            if (operator.key == result)
+                value = valueEquation.replace(result, operator.value)
         }
     }
-    return name1
+    return value
 }
 
-fun checkLastChar(name: String): String {
-    return name.dropLastWhile { it == '_' }
-}
-
-fun removeExtraSpace(name: String): String {
-    var name1 = name
-    for (index in name.indices) {
-        if (name[index] == '_' && name[index + 1] == '_') {
-            name1 = name1.removeRange(index, index + 1)
-        }
-    }
-    return name1
-}
+/**
+ * Functions for preparing names for transpiling:
+ *    checkFirstChar -> called from checkTranspilerData.kt
+ *    checkLastChar -> called from checkTranspilerData.kt
+ *    removeExtraSpace -> called from removeTranspilerData.kt
+ *    margeNameRules
+ *    prepareNamesForTranspiling
+ */
 
 fun margeNameRules(name: String): String {
     var name1 = name
@@ -244,8 +190,10 @@ fun prepareNamesForTranspiling(tokens: MutableList<String>): MutableList<String>
 }
 
 /**
- * Function for preparing equation values of stock or constants and transforming them in proper format for ksd toolkit
- * Function: preparingEquation
+ * Functions for preparing equation values of stock or constants and transforming them in proper format for ksd toolkit
+ *     prepareEquation
+ *     prepareEquationsWithConstantsToUpperCase -> for preparing equation for constants uppercase syntax
+ *     prepareEquationsStockNames
  */
 
 fun prepareEquation(list: MutableList<String>, nameKey: String): MutableList<String> {
@@ -262,17 +210,22 @@ fun prepareEquation(list: MutableList<String>, nameKey: String): MutableList<Str
     return list
 }
 
-/**
- * Function for preparing equation for constants uppercase syntax
- *     preparingEquationForMacroFunctions
- */
-
-fun prepareEquationsWithConstantsToUpperCase(valueEquation: String): String{
+fun prepareEquationsWithConstantsToUpperCase(valueEquation: String): String {
     var constantsList = mutableListOf<String>()
-    var valueEquation=valueEquation
-    constantsList = prepareEquation(constantsList, "EquationTokenValueConstant")
+    var valueEquation = valueEquation
+    constantsList = prepareEquation(constantsList, "constants")
     for (constant in constantsList) {
         valueEquation = valueEquation.replace(constant, constant.uppercase())
+    }
+    return valueEquation
+}
+
+fun prepareEquationsStockNames(valueEquation: String): String {
+    var stockList = mutableListOf<String>()
+    var valueEquation = valueEquation
+    stockList = prepareEquation(stockList, "stocks")
+    for (constant in stockList) {
+        valueEquation = valueEquation.replace(constant, constant.lowercase().replaceFirstChar { it.uppercase() })
     }
     return valueEquation
 }
@@ -282,15 +235,20 @@ fun prepareEquationsWithConstantsToUpperCase(valueEquation: String): String{
  * Function: preparingEquation
  */
 
-fun prepareEquationsInConstantsOrConverters(modelName:String,tagName: String,tagType: String, equation: String){
+fun prepareEquationsInConstantsOrConverters(modelName: String, tagName: String, tagType: String, equation: String) {
     var value = equation
-    transpilerDataMap += try{value.toDouble()
-        mapOf("$modelName $tagType"+"EquationTokenValueConstant: $tagName" to value)
-    }catch (e: Exception){
+    try {
+        value.toDouble()
+        transpilerDataMap += mapOf("$modelName $tagType" + "EquationTokenValueConstant: $tagName" to value)
+        transpilerDataMap += mapOf("constants" to transpilerDataMap.getValue("constants") + "," + tagName)
+    } catch (e: Exception) {
+        println(e)
         value = prepareEquationForBuiltInFunctions(value)
-       // value = prepareEquationsWithConstantsToUpperCase(value)
-        mapOf("$modelName $tagType"+"EquationTokenValueConverter: $tagName" to value)
+        value = prepareEquationForImplementedBuiltInFunctions(value)
+        transpilerDataMap += mapOf("$modelName $tagType" + "EquationTokenValueConverter: $tagName" to value)
     }
 
 }
+
+
 
